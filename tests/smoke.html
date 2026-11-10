@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test fonctionnel — Restaurant XR</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #12121f;
+        color: #e8e8f0;
+        font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      h1 {
+        font-size: 16px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      pre {
+        padding: 16px;
+        border: 1px solid #2a2a3d;
+        border-radius: 6px;
+        background: #1a1a2e;
+        white-space: pre-wrap;
+      }
+      p {
+        color: #9a9ab0;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Test fonctionnel — Restaurant XR</h1>
+    <p>
+      Vérifie la construction du décor, l'état initial des tables et la logique de sélection
+      (raycasting, transition d'état, panneau). Ouvrir via un serveur HTTP, puis lire le résultat.
+    </p>
+    <pre id="out">Exécution…</pre>
+
+    <script type="module">
+      import * as THREE from 'three';
+      import { buildRestaurant } from '../src/world/restaurant.js';
+      import { createStatusPanel } from '../src/ui/status-panel.js';
+      import { createSelectionHandler } from '../src/interaction/selection.js';
+
+      const results = [];
+      const check = (name, ok, extra = '') =>
+        results.push(`${ok ? 'PASS' : 'FAIL'} | ${name}${extra ? ' [' + extra + ']' : ''}`);
+
+      try {
+        const { restaurant, tablesGroup } = buildRestaurant();
+        restaurant.updateMatrixWorld(true);
+
+        check('6 tables construites', tablesGroup.children.length === 6, `${tablesGroup.children.length}`);
+        check(
+          'userData.isTable sur chaque table',
+          tablesGroup.children.every((t) => t.userData.isTable === true),
+        );
+        check(
+          'userData.marker référence un Mesh',
+          tablesGroup.children.every((t) => t.userData.marker && t.userData.marker.isMesh),
+        );
+        check('restaurant = décor + tables', restaurant.children.length === 2, `${restaurant.children.length}`);
+        check(
+          'états initiaux conformes',
+          tablesGroup.children.map((t) => t.userData.status).join(',') ===
+            'available,occupied,reserved,available,unavailable,available',
+          tablesGroup.children.map((t) => t.userData.status).join(','),
+        );
+
+        const el = document.getElementById('out');
+        const panelTarget = document.createElement('div');
+        const panel = createStatusPanel(panelTarget);
+        const handler = createSelectionHandler({ tablesGroup, statusPanel: panel });
+
+        // Visée descendante depuis la position des yeux vers le plateau de la table (-3, -3).
+        const target = tablesGroup.children[0];
+        const aim = new THREE.Object3D();
+        aim.position.set(-3, 1.6, -1);
+        aim.lookAt(-3, 0.78, -3);
+        aim.rotateY(Math.PI); // Object3D.lookAt oriente +Z vers la cible ; le rayon utilise -Z
+        aim.updateMatrixWorld(true);
+        handler({ target: aim });
+
+        check('réservation appliquée', target.userData.status === 'reserved', target.userData.status);
+        check(
+          'marqueur recoloré en jaune',
+          target.userData.marker.material.color.getHex() === 0xcccc00,
+          '0x' + target.userData.marker.material.color.getHex().toString(16),
+        );
+        check('texte du panneau', panelTarget.textContent.includes('Réservée'), panelTarget.textContent);
+        check(
+          'couleur verte du panneau',
+          panelTarget.style.color === 'rgb(0, 255, 0)' || panelTarget.style.color === '#00ff00',
+          panelTarget.style.color,
+        );
+
+        handler({ target: aim });
+        check(
+          'seconde visée sur table réservée',
+          panelTarget.textContent.includes('Réservée'),
+          panelTarget.textContent,
+        );
+
+        // Visée horizontale vers une zone sans table.
+        const away = new THREE.Object3D();
+        away.position.set(-3, 1.6, -1);
+        away.lookAt(7, 1.6, -1);
+        away.rotateY(Math.PI);
+        away.updateMatrixWorld(true);
+        handler({ target: away });
+        check('message hors cible', panelTarget.textContent === 'Aucune table visée', panelTarget.textContent);
+      } catch (error) {
+        results.push('FAIL | exception : ' + (error && error.message));
+      }
+
+      const failed = results.filter((r) => r.startsWith('FAIL')).length;
+      document.getElementById('out').textContent =
+        results.join('\n') + `\n\n${results.length - failed}/${results.length} assertions réussies.`;
+    </script>
+  </body>
+</html>
