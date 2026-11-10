@@ -1,0 +1,28 @@
+# Propriétaires de code — Restaurant XR
+#
+# Ce fichier rend la répartition du travail visible dans l'interface GitHub :
+# chaque Pull Request affiche automatiquement le relecteur attendu.
+#
+# IMPORTANT : seuls les identifiants GitHub réellement connus sont actifs.
+# Les lignes commentées doivent être complétées dès que les comptes des autres
+# membres sont confirmés, sinon GitHub ignore silencieusement la règle.
+
+# --- Développement 3D / WebXR — Slim Selmi
+/src/core/        @slim40-jpg
+/src/world/       @slim40-jpg
+/src/xr/          @slim40-jpg
+
+# --- Intégration assets / UI — Hazem Bellili
+# /src/ui/        @hazem-bellili
+# /assets/        @hazem-bellili
+# /index.html     @hazem-bellili
+
+# --- Logique de réservation / tests — Wassim Hajji
+# /src/main.js           @wassimhajjijunior
+# /src/config/           @wassimhajjijunior
+# /src/interaction/      @wassimhajjijunior
+# /scripts/              @wassimhajjijunior
+
+# --- Documentation et outillage : revue par défaut de l'équipe
+/docs/            @slim40-jpg
+*.md              @slim40-jpg
