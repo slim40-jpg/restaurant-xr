@@ -1,0 +1,36 @@
+# Dépendances et artefacts de build
+node_modules/
+dist/
+build/
+.vite/
+.cache/
+
+# Système et éditeurs
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# Journaux et fichiers temporaires
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tmp
+*.bak
+
+# Secrets — ne jamais versionner
+.env
+.env.*
+!.env.example
+
+# Couverture de tests
+coverage/
+*.lcov
+
+# Fichiers générés par les outils
+.eslintcache
+.prettiercache
