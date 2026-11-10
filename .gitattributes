@@ -1,0 +1,38 @@
+# Normalisation des fins de ligne (Windows / macOS / Linux)
+* text=auto eol=lf
+
+# --- Modèles 3D volumineux : gérés par Git LFS -------------------------------
+# ATTENTION : ces règles s'appliquent aux NOUVEAUX ajouts. Les fichiers .glb déjà
+# présents dans l'historique doivent être migrés une seule fois, manuellement :
+#
+#   git lfs install
+#   git lfs migrate import --include="*.glb,*.gltf" --everything
+#   git push --force-with-lease origin main
+#
+# Cette migration réécrit l'historique : à faire uniquement après accord de
+# l'équipe et sauvegarde du dépôt (le remote possède déjà une branche `backup`).
+*.glb  filter=lfs diff=lfs merge=lfs -text
+*.gltf filter=lfs diff=lfs merge=lfs -text
+*.hdr  filter=lfs diff=lfs merge=lfs -text
+*.ktx2 filter=lfs diff=lfs merge=lfs -text
+*.exr  filter=lfs diff=lfs merge=lfs -text
+
+# --- Binaires simples --------------------------------------------------------
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.mp3  binary
+*.wav  binary
+*.ogg  binary
+
+# --- Sources -----------------------------------------------------------------
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
