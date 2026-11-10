@@ -124,6 +124,7 @@ restaurant-xr/
 │   └── ui/                 # Panneau de statut
 ├── docs/                   # Spécifications, planning, architecture, ADR
 ├── scripts/                # Vérificateur d'en-têtes
+├── tests/                  # Test fonctionnel navigateur (tests/smoke.html)
 ├── assets/                 # Modèles 3D (non chargés par la version actuelle)
 └── package.json            # Outils de développement et scripts
 ```
@@ -140,6 +141,9 @@ restaurant-xr/
 | [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md) | Preuve d'avancement semaine par semaine |
 | [`docs/adr/`](docs/adr/) | Décisions d'architecture et alternatives écartées |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Branches, commits, revues, périmètres d'écriture |
+
+Test fonctionnel : ouvrir `http://localhost:8000/tests/smoke.html` — 11 assertions
+sur la construction du décor, les états initiaux et la logique de sélection.
 
 ---
 
