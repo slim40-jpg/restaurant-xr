@@ -55,6 +55,8 @@
       import { createStatusFanout } from '../src/ui/status-fanout.js';
       import { enablePointerSelection } from '../src/interaction/pointer.js';
       import { createSelectionHandler } from '../src/interaction/selection.js';
+      import { FEATURE_LABELS_FR, ZONE_LABELS_FR } from '../src/config/constants.js';
+      import { describeTable, findMatchingTables, scoreTable } from '../src/interaction/recommend.js';
 
       const results = [];
       const check = (name, ok, extra = '') =>
@@ -64,7 +66,7 @@
         const { restaurant, tablesGroup } = buildRestaurant();
         restaurant.updateMatrixWorld(true);
 
-        check('6 tables construites', tablesGroup.children.length === 6, `${tablesGroup.children.length}`);
+        check('16 tables construites', tablesGroup.children.length === 16, `${tablesGroup.children.length}`);
         check(
           'userData.isTable sur chaque table',
           tablesGroup.children.every((t) => t.userData.isTable === true),
@@ -73,12 +75,37 @@
           'userData.marker référence un Mesh',
           tablesGroup.children.every((t) => t.userData.marker && t.userData.marker.isMesh),
         );
-        check('restaurant = décor + tables', restaurant.children.length === 2, `${restaurant.children.length}`);
+        check(
+          'identifiants stables T01..T16',
+          new Set(tablesGroup.children.map((t) => t.userData.id)).size === 16 &&
+            tablesGroup.children.every((t) => /^T\d{2}$/.test(t.userData.id)),
+          tablesGroup.children.map((t) => t.userData.id).join(','),
+        );
+        check(
+          'chaque table porte zone, capacité et caractéristiques',
+          tablesGroup.children.every(
+            (t) =>
+              typeof t.userData.zone === 'string' &&
+              [2, 4, 6].includes(t.userData.capacity) &&
+              Array.isArray(t.userData.features),
+          ),
+        );
+        check(
+          'restaurant contient le décor et les tables',
+          restaurant.children.length >= 2 && restaurant.children.includes(tablesGroup),
+          `${restaurant.children.length}`,
+        );
+        const statusCounts = tablesGroup.children.reduce((acc, t) => {
+          acc[t.userData.status] = (acc[t.userData.status] || 0) + 1;
+          return acc;
+        }, {});
         check(
           'états initiaux conformes',
-          tablesGroup.children.map((t) => t.userData.status).join(',') ===
-            'available,occupied,reserved,available,unavailable,available',
-          tablesGroup.children.map((t) => t.userData.status).join(','),
+          statusCounts.available === 12 &&
+            statusCounts.occupied === 2 &&
+            statusCounts.reserved === 1 &&
+            statusCounts.unavailable === 1,
+          JSON.stringify(statusCounts),
         );
 
         const el = document.getElementById('out');
@@ -86,11 +113,11 @@
         const panel = createStatusPanel(panelTarget);
         const handler = createSelectionHandler({ tablesGroup, statusPanel: panel });
 
-        // Visée descendante depuis la position des yeux vers le plateau de la table (-3, -3).
-        const target = tablesGroup.children[0];
+        // Visée descendante depuis la position des yeux vers le plateau de T01 (baie vitrée).
+        const target = tablesGroup.children.find((t) => t.userData.id === 'T01');
         const aim = new THREE.Object3D();
-        aim.position.set(-3, 1.6, -1);
-        aim.lookAt(-3, 0.78, -3);
+        aim.position.set(target.userData.x, 1.6, target.userData.z + 2);
+        aim.lookAt(target.userData.x, 0.78, target.userData.z);
         aim.rotateY(Math.PI); // Object3D.lookAt oriente +Z vers la cible ; le rayon utilise -Z
         aim.updateMatrixWorld(true);
         handler({ target: aim });
@@ -195,6 +222,70 @@
         fire('pointerup', 120, 120);
         check('dispose retire les écouteurs', selections === 1, `${selections}`);
         surface.remove();
+
+        // --- Moteur de recommandation (logique pure, tables factices) ---
+        const fakeTable = (over = {}) => ({
+          id: 'T01',
+          capacity: 4,
+          shape: 'round',
+          zone: 'center',
+          features: [],
+          status: 'available',
+          ...over,
+        });
+        const windowPrefs = { partySize: 4, zone: 'window', features: [], quiet: false, avoidWc: false };
+
+        check(
+          'scoreTable exclut une table occupée',
+          scoreTable(fakeTable({ status: 'occupied' }), windowPrefs) === -Infinity,
+        );
+        check(
+          'scoreTable exclut une capacité insuffisante',
+          scoreTable(fakeTable({ capacity: 2 }), { partySize: 6 }) === -Infinity,
+        );
+
+        const pool = [
+          fakeTable({ id: 'T03', zone: 'center', capacity: 4 }),
+          fakeTable({ id: 'T01', zone: 'window', capacity: 4, features: ['quiet'] }),
+          fakeTable({ id: 'T02', zone: 'window', capacity: 6 }),
+        ];
+        const orderA = findMatchingTables(pool, windowPrefs).map((m) => m.table.id).join(',');
+        const orderB = findMatchingTables(pool, windowPrefs).map((m) => m.table.id).join(',');
+        check('findMatchingTables est déterministe', orderA === orderB, orderA);
+
+        const ranked = findMatchingTables(
+          [fakeTable({ id: 'C1', zone: 'center' }), fakeTable({ id: 'W1', zone: 'window' })],
+          windowPrefs,
+        );
+        check(
+          'la zone fenêtre passe avant le centre',
+          ranked[0].table.id === 'W1',
+          ranked.map((m) => m.table.id).join(','),
+        );
+
+        const frenchLabels = new Set([
+          ...Object.values(ZONE_LABELS_FR),
+          ...Object.values(FEATURE_LABELS_FR),
+          'Loin des WC',
+        ]);
+        const reasons = findMatchingTables(pool, {
+          ...windowPrefs,
+          features: ['quiet'],
+          quiet: true,
+          avoidWc: true,
+        }).flatMap((m) => m.reasons);
+        check(
+          'reasons ne contient que des libellés français',
+          reasons.length > 0 && reasons.every((reason) => frenchLabels.has(reason)),
+          reasons.join(' | '),
+        );
+
+        const described = describeTable(fakeTable({ id: 'T05', zone: 'window', capacity: 4, features: ['quiet'] }));
+        check(
+          'describeTable produit la chaîne attendue',
+          described === 'T05 · Près de la fenêtre · 4 places · Au calme',
+          described,
+        );
       } catch (error) {
         results.push('FAIL | exception : ' + (error && error.message));
       }
