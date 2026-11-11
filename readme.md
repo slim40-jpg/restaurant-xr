@@ -16,10 +16,10 @@ tout tourne dans le navigateur.
 Projet académique — **Extended Reality (XR)** · SUP'COM · 2026–2027
 Encadrant : **Dr. Ing. Mohamed-Bécha Kaâniche** · Équipe : **Slim Selmi · Hazem Bellili · Wassim Hajji**
 
-![Aperçu de l'application](docs/img/w2-application.png)
+![Aperçu de l'application](docs/img/w3-salle.png)
 
-> Capture réelle, rendue en navigateur : six tables, marqueurs d'état, lampes,
-> panneau de réservation au fond de la salle et badge de backend en bas à droite.
+> Capture réelle, rendue en navigateur : salle de 16 tables sur 5 zones, baie vitrée,
+> banquette, bar, couverts dressés, panneau de réservation et panneau « Trouver une place ».
 
 ---
 
@@ -46,9 +46,9 @@ Prochain : W3 (PWA + déploiement).
 | --- | --- | --- | --- |
 | W1 | Socle d'ingénierie | Code modulaire, `/docs`, en-têtes, outillage, historique Git | ✅ |
 | W2 | Rendu moderne | Three.js r187, WebGPU + repli WebGL2, souris, panneau 3D | ✅ |
-| W3 | PWA | Manifeste, service worker, hors-ligne, déploiement HTTPS | 🔄 |
-| W4 | Immersion | Téléportation joystick, dolly joueur, modèles GLB, Vitest | ⬜ |
-| W5 | Backend 1/2 | Identifiants stables, schéma, API REST, conflits `409` | ⬜ |
+| W3 | Produit réaliste | Salle de 16 tables, 5 zones, couverts, choix de place par préférence | ✅ |
+| W4 | PWA + immersion | Manifeste, service worker, hors-ligne, téléportation joystick | 🔄 |
+| W5 | Backend 1/2 | Schéma, API REST, conflits `409` | ⬜ |
 | W6 | Backend 2/2 | Temps réel WebSocket, CI/CD, release `v1.0.0` | ⬜ |
 
 Détail, critères d'acceptation et risques : [`docs/PLANNING.md`](docs/PLANNING.md).
@@ -57,7 +57,11 @@ Détail, critères d'acceptation et risques : [`docs/PLANNING.md`](docs/PLANNING
 
 | Fonctionnalité | État | Jalon |
 | --- | --- | --- |
-| Salle 3D : sol, murs, plafond, 6 tables, 24 chaises, lampes, décor | ✅ | — |
+| Salle 3D : baie vitrée, bar, banquettes, coins, cuisine et WC signalés | ✅ | — |
+| **16 tables** de 2, 4 et 6 places réparties en **5 zones** | ✅ | W3 |
+| **Choix de la place** : près de la fenêtre, coin, banquette, bar, au calme, loin des WC | ✅ | W3 |
+| Recommandation classée des tables selon le nombre de couverts et les préférences | ✅ | W3 |
+| Mise en évidence des places proposées dans la scène | ✅ | W3 |
 | Session immersive `immersive-vr` (WebXR) | ✅ | — |
 | Manette VR : modèle 3D, rayon de visée, gâchette | ✅ | — |
 | Sélection d'une table par raycasting | ✅ | — |
@@ -289,6 +293,8 @@ restaurant-xr/
 - **Pas de persistance** : l'état des tables est local à l'onglet (W5).
 - **Pas encore installable** : manifeste et service worker en W3.
 - **Caméra fixe en VR** : téléportation en W4.
+- **Panneau de préférences en DOM uniquement** : il n'est pas encore visible dans le
+  casque ; sa version 3D arrive avec la téléportation en W4.
 - **WebGPU+WebXR expérimental** : le repli WebGL2 prend le relais et le badge
   l'affiche. La session immersive n'a pas encore été validée sur casque physique.
 - **Licence des modèles Sketchfab** à confirmer avant toute redistribution (DT-08).

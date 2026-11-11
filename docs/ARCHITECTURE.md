@@ -47,11 +47,14 @@ flèche montante ne doit jamais exister.
 main.js ──┬──> config/constants
           ├──> core/renderer ─────────> three/webgpu, three/addons
           ├──> core/scene ────────────> three, config
-          ├──> world/restaurant ──────> world/environment, world/furniture, config
+          ├──> world/restaurant ──────> world/{layout,environment,props,furniture}, config
           ├──> xr/controllers ────────> three, three/addons
           ├──> interaction/selection ─> three, config
+          ├──> interaction/recommend ─> config
+          ├──> interaction/highlight ─> three, config
           ├──> interaction/pointer ───> three
           ├──> interaction/controls ──> three/addons
+          ├──> ui/preferences ────────> config, interaction/recommend
           ├──> ui/status-panel ───────> config
           ├──> ui/status-panel-3d ────> three, config
           ├──> ui/status-fanout
@@ -63,6 +66,10 @@ rien, ce qui la rend testable et sans effet de bord. `ui/status-fanout.js` est l
 seul module qui connaît plusieurs panneaux à la fois : il permet de publier un
 même état sur le DOM (desktop) et sur le panneau 3D (VR) sans que
 `interaction/**` sache combien de supports existent.
+
+`world/layout.js` est une **donnée**, pas du code : il ne construit rien. C'est ce
+qui permet à `interaction/recommend.js` de classer les tables sans jamais toucher
+à Three.js, et à `tests/smoke.html` de vérifier le classement sans navigateur 3D.
 
 ---
 
@@ -127,7 +134,9 @@ meuble changeait de forme.
 
 | Extension | Où intervenir | Sans toucher à |
 | --- | --- | --- |
-| Ajouter une table | `config/constants.js` → `TABLE_LAYOUT` | tout le reste |
+| Ajouter une table | `world/layout.js` → `TABLE_CATALOGUE` (position, zone, capacité) | tout le reste |
+| Ajouter une zone ou une caractéristique | `config/constants.js` (`ZONES`, `TABLE_FEATURES`, libellés) puis `world/layout.js` | `world/environment.js` |
+| Ajouter un critère de recommandation | `interaction/recommend.js` (barème de score) | `world/**`, `ui/**` |
 | Ajouter un état de table | `constants.js` (couleur + libellé) puis `selection.js` | `world/**` |
 | Nouvelle interaction (téléportation) | `xr/locomotion.js` + `interaction/teleport.js` | `world/**`, `ui/**` |
 | Panneau de statut 3D | **fait** : `ui/status-panel-3d.js` implémente le même contrat que le panneau DOM, diffusé par `ui/status-fanout.js` | `interaction/**` |

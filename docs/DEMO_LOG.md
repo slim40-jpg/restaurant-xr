@@ -216,6 +216,80 @@ Lighthouse. La téléportation et les modèles GLB restent en W4.
 
 ---
 
+## Semaine 3 — Salle réaliste et choix de place
+
+**Branche** : `feat/salle-realiste` · **Date** : 2026-11-11
+
+### Livré
+
+| Élément | Détail |
+| --- | --- |
+| Plan de salle | 22 × 14 m, **16 tables** `T01`…`T16`, capacités 2/4/6, formes rondes et rectangulaires |
+| Zones | 5 zones : `window` (5), `corner` (3), `banquette` (3), `center` (3), `bar` (2) |
+| Caractéristiques | `quiet`, `private`, `view`, `near_wc`, `near_entrance` — cumulables, portées par la donnée |
+| Décor | baie vitrée, bar et tabourets, banquettes capitonnées, portes **CUISINE** et **WC** signalées, plantes, lampes, poutres et gaines, ardoise de menu |
+| Vaisselle | 54 couverts (assiettes, verres, serviettes), 6 chevalets de menu, 6 bougeoirs |
+| Choix de place | moteur de score pur (zone, couverts, calme, éloignement WC), panneau de préférences accessible, mise en évidence dorée des tables proposées |
+| Identifiants | stables `T01`…`T16` — la clé primaire du backend est désormais utilisable (DT-05 levée) |
+| Rendu | canvas dimensionné par le conteneur (`ResizeObserver`), plus de bandes noires quand la fenêtre change |
+
+### Vérifié
+
+```bash
+$ npm run verify
+21/21 fichier(s) conforme(s).   (en-têtes, limite de 200 lignes, ESLint, Prettier)
+
+$ tests/smoke.html (navigateur réel, HTTP)
+26/26 assertions réussies.
+```
+
+Dont : 16 tables construites · identifiants `T01..T16` uniques · chaque table porte zone,
+capacité et caractéristiques · répartition des statuts `available 12 / occupied 2 /
+reserved 1 / unavailable 1` · réservation effective sur T01 · classement déterministe ·
+zone `window` prioritaire · `reasons` uniquement en libellés français.
+
+```bash
+$ msedge --headless --screenshot=docs/img/w3-salle.png
+canvas data-engine : three.js r187 webgpu
+badge              : WebGL 2 · repli · three r187   (attendu : pas d'adaptateur GPU en headless)
+```
+
+### Revue visuelle indépendante
+
+La capture a été analysée par un agent d'analyse d'image, en deux passes, sur des critères
+explicites (lisibilité du restaurant, cadrage, artefacts, collisions).
+
+| Passe | Note | Constat |
+| --- | --- | --- |
+| 1 (salle initiale) | 6/10 | bandes noires, 66 % de cadre vide, plafond nu, mur du bar vide, aucun couvert |
+| 2 (après vaisselle et plafond) | 6,5/10 | bandes noires corrigées, cadre mort réduit à ~30 %, vaisselle lisible |
+| 3 (après HUD, éclairage, préférences) | — | panneau 3D masqué hors VR, halo de plafond atténué, plus d'allumage au chargement |
+
+**Défauts restants, assumés et documentés** :
+
+- traînées de lumière diagonales sur les murs du fond et de droite (ombres de la lumière
+  de baie sur une boîte d'ombre large) — esthétique, pas bloquant ;
+- bande sombre en haut de cadre (plafond en incidence rasante) ;
+- le comptoir du bar reste hors champ au cadrage par défaut : il faut orbiter pour le voir ;
+- le panneau de préférences n'existe qu'en DOM, donc **hors session immersive** — sa
+  traduction en panneau 3D est planifiée avec la téléportation (W4).
+
+### Commits
+
+```
+2a706a9 feat(world): plan de salle realiste de 16 tables et decor de bistrot
+0ba5c16 feat(ui): choisir une place par preference plutot qu une table libre
+93c8a4c feat(app): cabler les preferences et corriger le dimensionnement du canvas
+05189ff test(smoke): adapter les assertions aux 16 tables et au moteur de preferences
+```
+
+### Prochaine étape
+
+Reprendre le programme du jalon **W3** : manifeste PWA, service worker, déploiement
+HTTPS. La salle réaliste et le choix de place sont livrés en avance sur W4.
+
+---
+
 ## Modèle pour les semaines suivantes
 
 ````markdown

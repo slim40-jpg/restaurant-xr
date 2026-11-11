@@ -43,8 +43,8 @@ compte donc les **quatre semaines restantes** : `S+1` à `S+4`.
 | --- | --- | --- | --- | --- |
 | W1 | livré | Socle d'ingénierie | « Structurer le code », « dossier /docs », « en-têtes et commentaires », « 5 commits » | `/docs` complet, code modulaire, historique Git structuré |
 | W2 | livré | Modernisation du rendu | « Three.js r160 obsolète, pas de WebGPU » | r187 + `WebGPURenderer` avec repli WebGL2, badge de backend |
-| W3 | S+1 | PWA et déploiement | « Pas de PWA » | Application installable, hors-ligne, URL HTTPS public |
-| W4 | S+2 | Téléportation et tests | Téléportation (demandée nommément) | Déplacement au joystick + suite Vitest |
+| W3 | S+1 | Produit réaliste | Salle crédible, choix de place | 16 tables sur 5 zones, couverts, moteur de préférences |
+| W4 | S+2 | PWA et téléportation | « Pas de PWA », téléportation (demandée nommément) | Application installable + déplacement au joystick |
 | W5 | S+3 | Backend (1/2) : persistance | Backend multi-utilisateur (demandé nommément) | Réservations persistées, conflit refusé en `409` |
 | W6 | S+4 | Backend (2/2) : temps réel, CI, release | Backend multi-utilisateur (demandé nommément) | Deux clients synchronisés + CI verte + `v1.0.0` |
 
@@ -208,8 +208,10 @@ les réservations.
 
 ```sql
 create table tables (
-  id          text primary key,           -- 'T01' … 'T06'
-  label       text not null,
+  id          text primary key,           -- 'T01' … 'T16', stable, issu de world/layout.js
+  capacity    smallint not null check (capacity in (2, 4, 6)),
+  zone        text not null check (zone in ('window','corner','center','bar','banquette')),
+  features    text[] not null default '{}',  -- quiet | private | view | near_wc | near_entrance
   status      text not null check (status in ('available','occupied','reserved','unavailable')),
   updated_at  timestamptz not null default now()
 );

@@ -136,17 +136,32 @@ src/
 
 ### 5.1 Table (état runtime, client)
 
+Chaque table est décrite dans `src/world/layout.js` (`TABLE_CATALOGUE`) puis
+instanciée en `Object3D`. Les propriétés de choix d'une place sont **des données**,
+pas du code : c'est ce qui permet de trier, filtrer et, plus tard, persister.
+
 | Champ | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Identifiant `Table_<x>_<z>` (dérivé de la position — voir dette DT-05) |
+| `id` | `string` | Identifiant **stable** `T01`…`T16`, indépendant de la position (clé primaire en W5) |
+| `x`, `z` | `number` | Position du centre de la table, en mètres |
+| `rotation` | `number` | Rotation autour de l'axe Y, en radians |
+| `capacity` | `2 \| 4 \| 6` | Nombre de couverts |
+| `shape` | `'round' \| 'rect'` | Forme du plateau |
+| `zone` | `enum` | `window`, `corner`, `center`, `bar`, `banquette` — critère principal de choix |
+| `features` | `string[]` | `quiet`, `private`, `view`, `near_wc`, `near_entrance` — cumulables |
 | `status` | `enum` | `available`, `occupied`, `reserved`, `unavailable` |
 | `isTable` | `boolean` | Marqueur utilisé par la remontée de hiérarchie au raycasting |
 | `marker` | `THREE.Mesh` | Cylindre coloré au-dessus du plateau, recoloré lors d'un changement d'état |
 
-Le statut est porté par `Object3D.userData`, ce qui évite une structure
-parallèle à désynchroniser. Le `marker` est référencé directement dans
+Le statut et les attributs sont portés par `Object3D.userData`, ce qui évite une
+structure parallèle à désynchroniser. Le `marker` est référencé directement dans
 `userData` (et non retrouvé par inspection de géométrie), pour éviter tout
 couplage à la forme du maillage.
+
+**Conséquence produit** : une table n'est plus « un meuble libre » mais une place
+caractérisée. `interaction/recommend.js` note chaque table selon les préférences du
+client (zone, nombre de couverts, calme, éloignement des WC) et écarte les tables
+incompatibles ou indisponibles.
 
 ### 5.2 Reservation (prévu — jalon W5)
 
@@ -317,7 +332,7 @@ Aucune dépendance supplémentaire n'est requise : le test consomme les modules
 | DT-02 | Aucun manifeste ni service worker | Application non installable / non hors-ligne | W3 |
 | DT-03 | ~~Panneau de statut en DOM, invisible en session immersive~~ **Résolu** : panneau 3D texturé (`ui/status-panel-3d.js`) diffusé avec le panneau DOM | — | ✅ W2 |
 | DT-04 | Téléportation absente : la caméra est fixe en VR | Confort et exploration limités | W4 |
-| DT-05 | `id` de table dérivé des coordonnées (`Table_-3_-3`) | Identifiant instable si le plan change, inutilisable comme clé serveur | W5 |
+| DT-05 | ~~`id` de table dérivé des coordonnées~~ **Résolu** : identifiants stables `T01`…`T16` dans `world/layout.js` | — | ✅ W3 |
 | DT-06 | État des tables purement local (aucune persistance) | Deux utilisateurs ne partagent pas le même état | W5 |
 | DT-07 | `assets/restaurant_in_the_evening.glb` (30,1 Mo) versionné sans Git LFS | Dépôt lourd, clones lents | W1 (`.gitattributes`) puis W4 |
 | DT-08 | Licence des modèles Sketchfab non confirmée dans `ATTRIBUTION.md` | Risque juridique / remark de soutenance | Manuel — avant W2 |
