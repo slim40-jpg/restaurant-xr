@@ -34,15 +34,19 @@
 
 ---
 
-## 2. Vue d'ensemble des 5 semaines
+## 2. Vue d'ensemble des 6 semaines
 
-| Jalon | Semaine | Thème | Réponse au retour du jury | Livrable de démonstration |
+W1 et W2 ont été livrés en avance (10 et 11 novembre 2026). Le calendrier ci-dessous
+compte donc les **quatre semaines restantes** : `S+1` à `S+4`.
+
+| Jalon | Quand | Thème | Réponse au retour du jury | Livrable de démonstration |
 | --- | --- | --- | --- | --- |
-| W1 | 10–16 nov. | Socle d'ingénierie | « Structurer le code », « dossier /docs », « en-têtes et commentaires », « 5 commits » | `/docs` complet, code modulaire, historique Git structuré |
-| W2 | 17–23 nov. | Modernisation du rendu | « Three.js r160 obsolète, pas de WebGPU » | r187 + `WebGPURenderer` avec repli WebGL2, badge de backend |
-| W3 | 24–30 nov. | PWA et déploiement | « Pas de PWA » | Application installable, hors-ligne, URL HTTPS public |
-| W4 | 1–7 déc. | Immersion utilisable | Téléportation (demandée nommément) | Téléportation joystick + panneau de statut **dans** le casque |
-| W5 | 8–14 déc. | Backend multi-utilisateur | Backend multi-utilisateur (demandé nommément) | Deux clients synchronisés + gestion de conflit + CI/CD |
+| W1 | livré | Socle d'ingénierie | « Structurer le code », « dossier /docs », « en-têtes et commentaires », « 5 commits » | `/docs` complet, code modulaire, historique Git structuré |
+| W2 | livré | Modernisation du rendu | « Three.js r160 obsolète, pas de WebGPU » | r187 + `WebGPURenderer` avec repli WebGL2, badge de backend |
+| W3 | S+1 | PWA et déploiement | « Pas de PWA » | Application installable, hors-ligne, URL HTTPS public |
+| W4 | S+2 | Téléportation et tests | Téléportation (demandée nommément) | Déplacement au joystick + suite Vitest |
+| W5 | S+3 | Backend (1/2) : persistance | Backend multi-utilisateur (demandé nommément) | Réservations persistées, conflit refusé en `409` |
+| W6 | S+4 | Backend (2/2) : temps réel, CI, release | Backend multi-utilisateur (demandé nommément) | Deux clients synchronisés + CI verte + `v1.0.0` |
 
 ---
 
@@ -155,26 +159,42 @@ cinétose, et rendre le retour d'état lisible dans le casque.
 
 **Autres livrables**
 
-- Panneau de statut **en espace 3D** (texture canvas) ancré au monde ou à la manette :
-  le `<div>` actuel est invisible en session immersive (dette DT-03).
 - Machine à états explicite de la réservation : `IDLE → TARGETING → CONFIRMING → CONFIRMED`,
-  avec annulation.
-- Repli écran : `OrbitControls` + sélection au clic.
-- Intégration des modèles GLB de `assets/` (dette DT-07/DT-08 levées au préalable).
+  avec annulation (aujourd'hui : transition directe au clic).
+- **Dolly joueur** : regrouper caméra et déplacement dans un `THREE.Group` parent, pour que
+  la téléportation survive au remplacement du renderer par `WebGLXRFallback`.
+- Intégration des modèles GLB de `assets/` (après compression et vérification DT-08).
 - `docs/adr/0003-teleportation.md`.
+- **Vitest** : `npm run test` intégré à `npm run verify` (lève DT-09).
 
 **Critères d'acceptation**
 
 - Téléportation fluide sur Quest et sur l'émulateur.
-- Aucune téléportation hors zone autorisée.
-- Le panneau de statut est lisible **dans** le casque.
-- Tests unitaires verts.
+- Aucune téléportation hors zone autorisée, ni dans une table.
+- `npm run test` vert et intégré à `npm run verify`.
+- Le déplacement survit à l'ouverture puis à la fermeture d'une session XR.
 
 ---
 
-### W5 — Backend multi-utilisateur, CI/CD et soutenance
+### W5 — Backend (1/2) : persistance, API et conflits
 
-> Exigence nommée par le jury : *« backend multi-utilisateur »*.
+> Exigence nommée par le jury : *« backend multi-utilisateur »*. Elle est traitée sur
+> deux semaines : W5 pour l'état persistant, W6 pour le temps réel et la mise en service.
+
+**Prérequis bloquant (jour 1)**
+
+Les identifiants de table sont actuellement dérivés de la position
+(`Table_-3_-3`) : ils ne peuvent pas servir de clé primaire. Passer à des
+identifiants stables `T01`…`T06` dans `config/constants.js` **avant** d'écrire la
+moindre migration (dette DT-05). Sans cela, un changement de plan invalide toutes
+les réservations.
+
+**Livrables**
+
+- Backend + schéma migré (Alembic), `docker-compose.yml` pour PostgreSQL.
+- `GET /tables`, `POST /reservations`, `DELETE /reservations/:id`.
+- `src/net/api.js` : chargement initial, réservation optimiste, rollback sur `409`.
+- `docs/adr/0004-backend.md`, `docs/API.md`.
 
 **Choix technique à arbitrer (ADR-0004) en début de semaine**
 
@@ -225,18 +245,33 @@ create unique index one_active_reservation_per_table
    serveur et affiche un message explicite.
 4. Reconnexion : backoff exponentiel, puis resynchronisation complète via `GET /tables`.
 
-**CI/CD et soutenance**
+**Critères d'acceptation (W5)**
 
-- GitHub Actions : `lint` → `check:headers` → `test` → `build` → `deploy` sur `main`.
-- `docs/API.md`, `docs/SOUTENANCE.md` (script de démonstration de 2 minutes,
-  questions anticipées, architecture en une image).
+- `POST /reservations` renvoie `409 TABLE_ALREADY_RESERVED` sur une table déjà réservée
+  (garanti par l'index unique partiel, pas par un `if` applicatif).
+- Une réservation survit à un rechargement de page.
+- Sur `409`, le client annule son changement optimiste et restaure l'état serveur.
+- `docs/API.md` publié ; documentation OpenAPI accessible depuis le backend.
+
+---
+
+### W6 — Backend (2/2) : temps réel, CI/CD et release
+
+**Livrables**
+
+- Diffusion WebSocket `table.updated` après chaque transition, à tous les clients.
+- Client : reconnexion avec backoff exponentiel et resynchronisation via `GET /tables`.
+- `reservation.rejected` : notification ciblée du client perdant.
+- GitHub Actions : `check:headers` → `lint` → `test` → `deploy`, requis sur chaque PR.
+- `docs/SOUTENANCE.md` : script de 2 minutes, questions anticipées, architecture en une image.
 - Tag `v1.0.0` + *Release* GitHub avec vidéo de démonstration.
 
-**Critères d'acceptation**
+**Critères d'acceptation (W6)**
 
-- Deux navigateurs, même table : le second reçoit un refus en < 500 ms.
-- L'état se propage aux deux clients sans rechargement.
-- CI verte sur `main` ; badge dans le README.
+- Deux navigateurs, même table : le second reçoit un refus en < 500 ms et revient en arrière.
+- Une réservation faite dans un onglet apparaît dans l'autre en < 500 ms, sans rechargement.
+- CI verte sur `main`, badge CI dans le README.
+- Release `v1.0.0` publiée avec la vidéo.
 
 ---
 
@@ -261,8 +296,9 @@ create unique index one_active_reservation_per_table
 | W1 | `chore/engineering-baseline` | ✅ terminé | à ouvrir | `/docs` + historique Git |
 | W2 | `feat/three-r187` | ✅ terminé | à ouvrir | badge backend + sélection souris + panneau 3D |
 | W3 | `feat/pwa` | ⬜ | — | installation + hors-ligne |
-| W4 | `feat/teleportation` | ⬜ | — | déplacement en VR |
-| W5 | `feat/multiuser-backend` | ⬜ | — | deux clients synchronisés |
+| W4 | `feat/teleportation` | ⬜ | — | déplacement en VR + `npm run test` |
+| W5 | `feat/backend-persistence` | ⬜ | — | `409` sur conflit, données persistées |
+| W6 | `feat/realtime-ci` | ⬜ | — | deux clients synchronisés + `v1.0.0` |
 
 ---
 

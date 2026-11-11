@@ -47,8 +47,9 @@ Prochain : W3 (PWA + déploiement).
 | W1 | Socle d'ingénierie | Code modulaire, `/docs`, en-têtes, outillage, historique Git | ✅ |
 | W2 | Rendu moderne | Three.js r187, WebGPU + repli WebGL2, souris, panneau 3D | ✅ |
 | W3 | PWA | Manifeste, service worker, hors-ligne, déploiement HTTPS | 🔄 |
-| W4 | Immersion | Téléportation joystick, modèles GLB, tests unitaires | ⬜ |
-| W5 | Temps réel | Backend multi-utilisateur, conflits, CI/CD, `v1.0.0` | ⬜ |
+| W4 | Immersion | Téléportation joystick, dolly joueur, modèles GLB, Vitest | ⬜ |
+| W5 | Backend 1/2 | Identifiants stables, schéma, API REST, conflits `409` | ⬜ |
+| W6 | Backend 2/2 | Temps réel WebSocket, CI/CD, release `v1.0.0` | ⬜ |
 
 Détail, critères d'acceptation et risques : [`docs/PLANNING.md`](docs/PLANNING.md).
 
@@ -163,7 +164,7 @@ Graphe complet, flux d'exécution et invariants : [`docs/ARCHITECTURE.md`](docs/
 L'objectif n'est pas « un décor 3D de plus ». C'est **un plan de salle partagé en
 temps réel**, dont la 3D est l'interface.
 
-| Aujourd'hui (W2) | v1.0 (fin W5) |
+| Aujourd'hui (W2) | v1.0 (fin W6) |
 | --- | --- |
 | Un seul onglet, état local | Plusieurs clients, état serveur unique |
 | Réservation simulée | Réservation persistée, annulable, avec conflits gérés |
