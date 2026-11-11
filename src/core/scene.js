@@ -32,11 +32,11 @@ export function createScene() {
  */
 export function addLighting(scene) {
   // Ambiante faible et hémisphérique pour garder les ombres lisibles sans écraser le décor.
-  scene.add(new THREE.AmbientLight(0xffffff, 0.28));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.34));
   scene.add(new THREE.HemisphereLight(0x9fb6d8, 0x3a2a1c, 0.5));
 
   // Lumière froide venant de la baie vitrée (X négatif) : source principale et ombres.
-  const windowLight = new THREE.DirectionalLight(0xbdd2ec, 1.5);
+  const windowLight = new THREE.DirectionalLight(0xbdd2ec, 1.2);
   windowLight.position.set(-14, 6, 2);
   windowLight.target.position.set(2, 0, -1);
   windowLight.castShadow = true;

@@ -9,7 +9,7 @@
 import { STATUS_COLORS, TABLE_STATUS } from '../config/constants.js';
 
 /** Couleur d'émission des marqueurs mis en évidence. */
-const HIGHLIGHT_COLOR = 0x7ad7ff;
+const HIGHLIGHT_COLOR = 0xffc861;
 /** Intensité moyenne de la pulsation. */
 const BASE_INTENSITY = 0.9;
 /** Amplitude discrète de la pulsation. */

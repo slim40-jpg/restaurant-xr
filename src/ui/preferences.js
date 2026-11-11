@@ -17,6 +17,13 @@ import { describeTable, findMatchingTables } from '../interaction/recommend.js';
 
 /** Nombre maximal de recommandations listées. */
 const MAX_RESULTS = 5;
+/**
+ * Drapeau du premier rendu : au chargement, on affiche la liste mais on ne met
+ * rien en évidence. Sans cela, une dizaine de tables s'allument avant que
+ * l'utilisateur n'ait exprimé la moindre préférence, ce qui donne l'impression
+ * de marqueurs de débogage plutôt que de recommandations.
+ */
+let initialRender = true;
 /** Compteur d'identifiants uniques pour les labels associés. */
 let panelCounter = 0;
 
@@ -146,7 +153,7 @@ export function createPreferencesPanel({ container, getTables, onHighlight } = {
       resultList.appendChild(item);
     }
 
-    notify(matches.map((match) => match.table.id));
+    if (!initialRender) notify(matches.map((match) => match.table.id));
   }
 
   /**
@@ -184,6 +191,7 @@ export function createPreferencesPanel({ container, getTables, onHighlight } = {
 
   host.appendChild(element);
   refresh();
+  initialRender = false;
 
   return { element, refresh };
 }
