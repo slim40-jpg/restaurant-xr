@@ -119,6 +119,103 @@ Jalon **W2** : migration vers `three@0.187.0` avec `WebGPURenderer` et repli
 
 ---
 
+## Semaine 2 — Rendu moderne et démonstration utilisable
+
+**Branche** : `feat/three-r187` · **Date** : 2026-11-11
+
+### Livré
+
+| Élément | Détail |
+| --- | --- |
+| Three.js r187 | `WebGPURenderer` (`three/webgpu`), import map alignée, plus aucun `WebGLRenderer` |
+| Repli WebGL2 | `setupWebGLXRFallback` installé : la session XR ne peut plus se retrouver sur un backend incompatible |
+| Badge de backend | `WebGPU · actif` / `WebGL 2 · repli`, visible en permanence, avec la révision de Three.js |
+| Sélection à la souris | clic = réservation, glisser = orbite (seuil 6 px / 400 ms), `dispose()` propre |
+| Caméra desktop | `OrbitControls` bornés (1,5–9 m, jamais sous le sol), coupés pendant une session XR |
+| Panneau d'état 3D | `CanvasTexture` ancré dans la salle, orienté vers la caméra → le retour est enfin lisible **dans** le casque (DT-03) |
+| Diffusion d'état | `ui/status-fanout.js` publie le même état sur le panneau DOM et le panneau 3D |
+| Capture de référence | `docs/img/w2-application.png` (1280 × 800, rendu réel) |
+
+### Vérifié
+
+```bash
+$ npm run verify
+15/15 fichier(s) conforme(s).
+All matched files use Prettier code style!
+(eslint : 0 erreur)
+```
+
+**Application réelle**, page servie en HTTP, Edge headless :
+
+```
+canvas data-engine : three.js r187 webgpu
+bouton VR          : <button id="VRButton">VR NOT SUPPORTED</button>
+badge              : WebGL 2 · repli · three r187
+```
+
+`VR NOT SUPPORTED` et le repli WebGL2 sont **attendus** : la machine de test n'a ni
+casque ni adaptateur GPU exposé (`"No available adapters."`). Le chemin WebGPU est
+néanmoins instancié, et Three.js bascule seul sur WebGL2 — c'est précisément la
+preuve que le repli fonctionne. Sur un poste avec GPU, le badge affiche
+`WebGPU · actif`.
+
+**Test fonctionnel** — `tests/smoke.html` : **18/18 assertions réussies**, dont les
+nouvelles :
+
+```
+PASS | panneau 3D = Mesh texturé
+PASS | panneau 3D réellement dessiné [127509 px opaques]
+PASS | panneau 3D orientable vers la caméra
+PASS | fanout diffuse à tous les panneaux [1/1]
+PASS | clic souris déclenche une sélection [1]
+PASS | glisser de caméra ne sélectionne pas [1]
+PASS | dispose retire les écouteurs [1]
+```
+
+**Contrôle visuel** (capture analysée indépendamment) : scène non noire, 6 tables,
+6 marqueurs (3 verts, 1 rouge, 1 jaune, 1 gris), 2 lampes suspendues visibles,
+panneau du fond lisible, badge présent, aucun artefact de rendu ni géométrie
+flottante.
+
+### NON VÉRIFIÉ
+
+- **Session immersive réelle** : aucun casque connecté. Le comportement du repli
+  XR au moment de `setSession` est donc vérifié par lecture du code de l'addon et
+  par la documentation, pas par une exécution sur casque.
+- **Rendu WebGPU natif** : pas d'adaptateur GPU disponible en headless ; seul le
+  chemin de repli a été exercé.
+- **Réétalonnage esthétique** après r181/r165 : les intensités lumineuses sont
+  inchangées, un ajustement reste possible.
+
+### Commits
+
+```
+26724dd chore(render): migrer vers three r187 avec WebGPURenderer et repli WebGL2
+55a0f39 feat(input): selectionner une table a la souris et piloter la camera
+b3c9506 feat(ui): afficher l etat de reservation dans le casque
+e1cdeac feat(app): cabler la selection souris et le panneau 3D au bootstrap
+aa0cc0c test(smoke): couvrir le panneau 3D, le fanout et le clic souris
+a1bc899 docs(w2): documenter la migration r187, les nouveaux modules et les preuves
+```
+
+### Réponse point par point aux remarques du jury
+
+| Remarque | Traitement | Preuve |
+| --- | --- | --- |
+| « Three.js r160 obsolète, bloque WebGPU » | r187 + `WebGPURenderer` + repli WebGL2 | badge à l'écran, `docs/MIGRATION_R160_R187.md` |
+| « Pas de PWA » | Prévu W3 | `docs/PLANNING.md` |
+| « Peu de commits » | 6 commits de plus, un par préoccupation | `git log` ci-dessus |
+| « Structurer le code » | 15 modules, chacun ≤ 200 lignes | `npm run check:headers` → 15/15 |
+| « En-têtes et commentaires » | en-tête + JSDoc sur chaque export | `npm run check:headers` |
+| « Dossier /docs » | 6 documents + 2 ADR + migration + journal | `docs/` |
+
+### Prochaine étape
+
+Jalon **W3** : PWA (manifeste, service worker, icônes), déploiement HTTPS et audit
+Lighthouse. La téléportation et les modèles GLB restent en W4.
+
+---
+
 ## Modèle pour les semaines suivantes
 
 ````markdown
