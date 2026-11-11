@@ -31,8 +31,10 @@
     <script type="importmap">
       {
         "imports": {
-          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+          "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js",
+          "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js",
+          "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.tsl.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
         }
       }
     </script>
@@ -49,6 +51,9 @@
       import * as THREE from 'three';
       import { buildRestaurant } from '../src/world/restaurant.js';
       import { createStatusPanel } from '../src/ui/status-panel.js';
+      import { createWorldStatusPanel } from '../src/ui/status-panel-3d.js';
+      import { createStatusFanout } from '../src/ui/status-fanout.js';
+      import { enablePointerSelection } from '../src/interaction/pointer.js';
       import { createSelectionHandler } from '../src/interaction/selection.js';
 
       const results = [];
@@ -118,6 +123,78 @@
         away.updateMatrixWorld(true);
         handler({ target: away });
         check('message hors cible', panelTarget.textContent === 'Aucune table visée', panelTarget.textContent);
+
+        // --- Panneau de statut 3D (lisible dans le casque) ---
+        const world = createWorldStatusPanel();
+        check(
+          'panneau 3D = Mesh texturé',
+          world.object3D.isMesh === true && world.object3D.material.map?.isCanvasTexture === true,
+        );
+
+        world.showNoTarget();
+        const canvas3d = world.object3D.material.map.image;
+        const pixels = canvas3d.getContext('2d').getImageData(0, 0, canvas3d.width, canvas3d.height).data;
+        let opaque = 0;
+        for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) opaque += 1;
+        check('panneau 3D réellement dessiné', opaque > 1000, `${opaque} px opaques`);
+
+        world.update(new THREE.PerspectiveCamera());
+        check('panneau 3D orientable vers la caméra', Number.isFinite(world.object3D.quaternion.w));
+
+        // --- Diffusion vers plusieurs panneaux ---
+        let domCalls = 0;
+        let worldCalls = 0;
+        const fanout = createStatusFanout([
+          {
+            showNoTarget: () => {
+              domCalls += 1;
+            },
+          },
+          {
+            showNoTarget: () => {
+              worldCalls += 1;
+            },
+          },
+          null,
+        ]);
+        fanout.showNoTarget();
+        check('fanout diffuse à tous les panneaux', domCalls === 1 && worldCalls === 1, `${domCalls}/${worldCalls}`);
+
+        // --- Sélection souris : un clic sélectionne, un glisser non ---
+        const surface = document.createElement('div');
+        Object.assign(surface.style, {
+          position: 'fixed',
+          left: '0',
+          top: '0',
+          width: '400px',
+          height: '300px',
+        });
+        document.body.appendChild(surface);
+
+        let selections = 0;
+        const disposePointer = enablePointerSelection({
+          domElement: surface,
+          camera: new THREE.PerspectiveCamera(75, 4 / 3, 0.1, 100),
+          select: () => {
+            selections += 1;
+          },
+        });
+        const fire = (type, clientX, clientY) =>
+          surface.dispatchEvent(new PointerEvent(type, { clientX, clientY, bubbles: true }));
+
+        fire('pointerdown', 100, 100);
+        fire('pointerup', 100, 100);
+        check('clic souris déclenche une sélection', selections === 1, `${selections}`);
+
+        fire('pointerdown', 100, 100);
+        fire('pointerup', 260, 100);
+        check('glisser de caméra ne sélectionne pas', selections === 1, `${selections}`);
+
+        disposePointer();
+        fire('pointerdown', 120, 120);
+        fire('pointerup', 120, 120);
+        check('dispose retire les écouteurs', selections === 1, `${selections}`);
+        surface.remove();
       } catch (error) {
         results.push('FAIL | exception : ' + (error && error.message));
       }
