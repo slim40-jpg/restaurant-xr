@@ -1,24 +1,32 @@
 /**
  * @file    src/xr/controllers.js
- * @brief   Mise en place du bouton VR, des contrôleurs WebXR et de leur ligne de visée.
+ * @brief   Bouton VR, contrôleurs WebXR, modèle de manette et rayon de visée.
  * @author  Slim Selmi — Développement 3D / WebXR
- * @date    2026-11-10
+ * @date    2026-11-11
  * @role    Prépare les entrées WebXR ; la logique de sélection est branchée par l'appelant.
  */
 
-import * as THREE from 'three';
+import * as THREE from 'three/webgpu';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 
 /**
- * Ajoute le bouton d'entrée en VR, un contrôleur avec son modèle 3D et une ligne de visée cyan.
- * @param {THREE.WebGLRenderer} renderer Renderer dont la session XR est utilisée.
+ * Fonctionnalités demandées à l'ouverture de session.
+ * `webgpu` permet au renderer WebGPU de composer directement dans le casque quand
+ * le navigateur expose `XRGPUBinding` ; sinon `WebGLXRFallback` bascule sur WebGL2.
+ */
+const SESSION_FEATURES = ['local-floor', 'bounded-floor', 'webgpu'];
+
+/**
+ * Ajoute le bouton d'entrée en VR, un contrôleur avec son modèle 3D et une ligne de visée.
+ * @param {THREE.WebGPURenderer} renderer Renderer dont la session XR est utilisée.
  * @param {THREE.Scene} scene Scène dans laquelle les contrôleurs sont ajoutés.
- * @returns {{ controller: THREE.XRController, grip: THREE.XRControllerGrip }} Le contrôleur principal
- *   et son grip.
+ * @returns {{ controller: THREE.XRController, grip: THREE.XRControllerGrip, button: HTMLElement }}
+ *   Le contrôleur principal, son grip et le bouton injecté dans le document.
  */
 export function setupControllers(renderer, scene) {
-  document.body.appendChild(VRButton.createButton(renderer));
+  const button = VRButton.createButton(renderer, { optionalFeatures: SESSION_FEATURES });
+  document.body.appendChild(button);
 
   const controllerModelFactory = new XRControllerModelFactory();
 
@@ -39,5 +47,5 @@ export function setupControllers(renderer, scene) {
   const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0x00ffff }));
   controller.add(line);
 
-  return { controller, grip };
+  return { controller, grip, button };
 }
