@@ -1,8 +1,8 @@
 /**
  * @file    src/core/scene.js
- * @brief   Création de la scène, de la caméra et de l'éclairage du restaurant.
+ * @brief   Création de la scène, de la caméra et de l'éclairage « bistrot le soir ».
  * @author  Slim Selmi — Développement 3D / WebXR
- * @date    2026-11-10
+ * @date    2026-11-11
  * @role    Initialise le graphe de scène et les lumières consommés par le rendu et la WebXR.
  */
 
@@ -25,27 +25,48 @@ export function createScene() {
 }
 
 /**
- * Ajoute l'éclairage de la salle : ambiante, principale (avec ombres) et appoint chaude.
+ * Ajoute l'éclairage de la salle : ambiance basse, lumière froide de la baie vitrée et
+ * lampes chaudes ponctuelles au-dessus des zones.
  * @param {THREE.Scene} scene Scène à éclairer.
  * @returns {void}
  */
 export function addLighting(scene) {
-  // Lumière ambiante (éclairage de base)
-  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  // Ambiante faible et hémisphérique pour garder les ombres lisibles sans écraser le décor.
+  scene.add(new THREE.AmbientLight(0xffffff, 0.28));
+  scene.add(new THREE.HemisphereLight(0x9fb6d8, 0x3a2a1c, 0.5));
 
-  // Lumière principale (simule l'éclairage du plafond)
-  const mainLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
-  mainLight.position.set(2, 5, 3);
-  mainLight.castShadow = true;
-  mainLight.shadow.mapSize.set(1024, 1024);
-  mainLight.shadow.camera.left = -10;
-  mainLight.shadow.camera.right = 10;
-  mainLight.shadow.camera.top = 10;
-  mainLight.shadow.camera.bottom = -10;
-  scene.add(mainLight);
+  // Lumière froide venant de la baie vitrée (X négatif) : source principale et ombres.
+  const windowLight = new THREE.DirectionalLight(0xbdd2ec, 1.5);
+  windowLight.position.set(-14, 6, 2);
+  windowLight.target.position.set(2, 0, -1);
+  windowLight.castShadow = true;
+  windowLight.shadow.mapSize.set(2048, 2048);
+  windowLight.shadow.camera.left = -14;
+  windowLight.shadow.camera.right = 14;
+  windowLight.shadow.camera.top = 10;
+  windowLight.shadow.camera.bottom = -10;
+  windowLight.shadow.camera.near = 1;
+  windowLight.shadow.camera.far = 40;
+  windowLight.shadow.bias = -0.0002;
+  // Biais de normale élevé + carte 2048 : la boîte d'ombre couvre 28 m, et une
+  // résolution insuffisante produisait des traînées diagonales sur les murs.
+  windowLight.shadow.normalBias = 0.14;
+  windowLight.shadow.mapSize.set(2048, 2048);
+  scene.add(windowLight);
+  scene.add(windowLight.target);
 
-  // Lumière d'appoint chaude (simule l'ambiance de lampes)
-  const fillLight = new THREE.PointLight(0xffaa66, 0.8, 15);
-  fillLight.position.set(-3, 2.5, 2);
-  scene.add(fillLight);
+  // Lampes chaudes au-dessus des zones (fenêtre, centre, banquette, bar).
+  // Posées à 2,5 m et non 2,9 m : à 50 cm du plafond, une lampe ponctuelle
+  // produisait une tache blanche écrasée au-dessus de la salle.
+  const warm = 0xffb46b;
+  [
+    [-8.5, 2.5, -1.0, 8],
+    [0, 2.5, 0.5, 9],
+    [-2.5, 2.5, -5.0, 7],
+    [8.0, 2.5, 2.0, 8],
+  ].forEach(([x, y, z, intensity]) => {
+    const lamp = new THREE.PointLight(warm, intensity, 11, 2);
+    lamp.position.set(x, y, z);
+    scene.add(lamp);
+  });
 }
