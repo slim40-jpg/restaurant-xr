@@ -82,7 +82,7 @@ src/
 ├── config/
 │   └── constants.js            # Constantes : couleurs, dimensions, statuts, plan des tables
 ├── core/
-│   ├── renderer.js             # WebGLRenderer, taille, ombres, activation XR
+│   ├── renderer.js             # WebGPURenderer + repli WebGL2 (session XR comprise)
 │   └── scene.js                # Scène, caméra, éclairage
 ├── world/
 │   ├── environment.js          # Sol, murs, plafond, tapis, tableaux, lampes
@@ -91,9 +91,14 @@ src/
 ├── xr/
 │   └── controllers.js          # Bouton VR, manette, modèle 3D du grip, rayon de visée
 ├── interaction/
-│   └── selection.js            # Raycasting, résolution de la cible, transition d'état
+│   ├── selection.js            # Service rayon → état + adaptateur manette
+│   ├── pointer.js              # Adaptateur souris (clic → rayon monde)
+│   └── controls.js             # OrbitControls bornés, coupés pendant une session XR
 └── ui/
-    └── status-panel.js         # Panneau de statut HTML (état de la table visée)
+    ├── status-panel.js         # Panneau de statut HTML (desktop)
+    ├── status-panel-3d.js      # Panneau de statut texturé, ancré dans la salle (VR)
+    ├── status-fanout.js        # Diffusion d'un état vers plusieurs panneaux
+    └── backend-badge.js        # Badge WebGPU / WebGL2
 ```
 
 ### 4.1 Responsabilités et dépendances
@@ -101,14 +106,19 @@ src/
 | Module | Responsabilité unique | Dépend de |
 | --- | --- | --- |
 | `config/constants.js` | Source de vérité des valeurs numériques et des libellés | — |
-| `core/renderer.js` | Créer et configurer le renderer, activer XR | `three`, `config` |
+| `core/renderer.js` | Créer le renderer WebGPU et garantir le repli WebGL2 | `three/webgpu`, `three/addons` |
 | `core/scene.js` | Créer scène + caméra, installer l'éclairage | `three`, `config` |
 | `world/environment.js` | Construire le bâti (sol, murs, plafond, décor) | `three`, `config` |
 | `world/furniture.js` | Fabriquer une table / une chaise isolée | `three`, `config` |
 | `world/restaurant.js` | Composer environnement + mobilier | `environment`, `furniture`, `config` |
 | `xr/controllers.js` | Exposer manette, grip et rayon de visée | `three`, `three/addons` |
-| `ui/status-panel.js` | Afficher l'état applicatif dans le DOM | `config` |
-| `interaction/selection.js` | Convertir un événement `selectstart` en effet métier | `three`, `config` |
+| `interaction/selection.js` | Transformer un rayon en transition d'état | `three`, `config` |
+| `interaction/pointer.js` | Traduire un clic souris en rayon monde | `three` |
+| `interaction/controls.js` | Piloter la caméra hors session XR | `three/addons` |
+| `ui/status-panel.js` | Afficher l'état dans le DOM | `config` |
+| `ui/status-panel-3d.js` | Afficher l'état sur un plan texturé (VR) | `three`, `config` |
+| `ui/status-fanout.js` | Diffuser un appel vers plusieurs panneaux | — |
+| `ui/backend-badge.js` | Rendre visible le backend actif | `three/webgpu` |
 | `main.js` | Câbler le tout, boucle de rendu, redimensionnement | tous |
 
 ### 4.2 Règles de dépendance
@@ -192,16 +202,19 @@ Règles :
 | API | Rôle | Module | Preuve |
 | --- | --- | --- | --- |
 | **WebXR Device API** | Ouverture de session `immersive-vr`, poses tête/manettes | `xr/controllers.js` | `renderer.xr.enabled = true`, `VRButton.createButton` |
-| **WebGL 2.0** | Rendu GPU de la scène | `core/renderer.js` | `new THREE.WebGLRenderer()` — `capabilities.isWebGL2` |
+| **WebGPU** | Rendu GPU principal (three r187) | `core/renderer.js` | `new THREE.WebGPURenderer()` — `renderer.backend.isWebGPUBackend` |
+| **WebGL 2.0** | Rendu GPU de repli, **y compris pendant une session XR** | `core/renderer.js` | `new THREE.WebGPURenderer({ forceWebGL: true })` via `setupWebGLXRFallback` |
 | **WebXR Input Sources** | Manettes, `handedness`, `gamepad`, `gripSpace` | `xr/controllers.js` | `renderer.xr.getController(0)`, `getControllerGrip(0)` |
 | **Gamepad API** | Axes joystick et gâchette (locomotion W4) | `xr/controllers.js` (à venir : `xr/locomotion.js`) | `session.inputSources[i].gamepad` |
 | **`XRSession.requestAnimationFrame`** | Boucle synchronisée au casque | `main.js` | `renderer.setAnimationLoop(...)` |
-| **DOM API** | Panneau de statut, bouton d'entrée en VR | `ui/status-panel.js`, `xr/controllers.js` | `document.getElementById('status')` |
+| **Pointer Events** | Sélection à la souris, distinction clic / glisser d'orbite | `interaction/pointer.js` | `pointerdown` / `pointerup` + `getBoundingClientRect()` |
+| **DOM API** | Panneau de statut, bouton VR, badge de backend | `ui/status-panel.js`, `ui/backend-badge.js`, `xr/controllers.js` | `document.getElementById('status')` |
+| **Canvas 2D + `CanvasTexture`** | Panneau de statut lisible **dans le casque** | `ui/status-panel-3d.js` | `new THREE.CanvasTexture(canvas)` |
 | **Raycaster (three.js)** | Intersection rayon ↔ tables | `interaction/selection.js` | `raycaster.intersectObjects(tablesGroup.children, true)` |
 
-> `GLTFLoader`, `CanvasTexture` et `Fetch` ne sont **pas** utilisés par la version
-> actuelle du code : ils sont planifiés (intégration des GLB, panneaux de table
-> en W4) et ne doivent pas être documentés comme existants.
+> `GLTFLoader` et `Fetch` ne sont **pas** utilisés par la version actuelle du code :
+> l'intégration des modèles `.glb` du dossier `assets/` est planifiée en W4 et ne
+> doit pas être documentée comme existante.
 
 ---
 
@@ -300,9 +313,9 @@ Aucune dépendance supplémentaire n'est requise : le test consomme les modules
 
 | ID | Limite | Impact | Jalon cible |
 | --- | --- | --- | --- |
-| DT-01 | Three.js r160, aucun rendu WebGPU | Exigence explicite du jury | W2 |
+| DT-01 | ~~Three.js r160, aucun rendu WebGPU~~ **Résolu** : r187 + `WebGPURenderer` + repli WebGL2 | — | ✅ W2 |
 | DT-02 | Aucun manifeste ni service worker | Application non installable / non hors-ligne | W3 |
-| DT-03 | Panneau de statut en DOM, **invisible en session immersive** | Le retour utilisateur disparaît en VR — défaut fonctionnel réel | W4 |
+| DT-03 | ~~Panneau de statut en DOM, invisible en session immersive~~ **Résolu** : panneau 3D texturé (`ui/status-panel-3d.js`) diffusé avec le panneau DOM | — | ✅ W2 |
 | DT-04 | Téléportation absente : la caméra est fixe en VR | Confort et exploration limités | W4 |
 | DT-05 | `id` de table dérivé des coordonnées (`Table_-3_-3`) | Identifiant instable si le plan change, inutilisable comme clé serveur | W5 |
 | DT-06 | État des tables purement local (aucune persistance) | Deux utilisateurs ne partagent pas le même état | W5 |

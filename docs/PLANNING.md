@@ -71,7 +71,12 @@
 
 ---
 
-### W2 — Three.js r187 + WebGPU
+### W2 — Three.js r187 + WebGPU ✅
+
+> Ce jalon a absorbé deux éléments initialement prévus en W4, parce qu'ils
+> conditionnent la démonstration : l'usage **sans casque** (orbite + clic) et le
+> panneau de statut **lisible en VR** (DT-03). Le W4 ne conserve donc que la
+> téléportation et l'intégration des modèles GLB.
 
 **Livrables**
 
@@ -254,7 +259,7 @@ create unique index one_active_reservation_per_table
 | Jalon | Branche | État | PR | Démo |
 | --- | --- | --- | --- | --- |
 | W1 | `chore/engineering-baseline` | ✅ terminé | à ouvrir | `/docs` + historique Git |
-| W2 | `feat/three-r187` | ⬜ | — | badge backend |
+| W2 | `feat/three-r187` | ✅ terminé | à ouvrir | badge backend + sélection souris + panneau 3D |
 | W3 | `feat/pwa` | ⬜ | — | installation + hors-ligne |
 | W4 | `feat/teleportation` | ⬜ | — | déplacement en VR |
 | W5 | `feat/multiuser-backend` | ⬜ | — | deux clients synchronisés |
