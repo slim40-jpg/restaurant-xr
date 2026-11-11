@@ -15,6 +15,9 @@ export default [
         requestAnimationFrame: 'readonly',
         localStorage: 'readonly',
         self: 'readonly',
+        ResizeObserver: 'readonly',
+        PointerEvent: 'readonly',
+        HTMLElement: 'readonly',
       },
     },
     rules: {

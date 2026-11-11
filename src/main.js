@@ -10,9 +10,11 @@ import { STATUS_ELEMENT_ID } from './config/constants.js';
 import { createXRRenderer } from './core/renderer.js';
 import { addLighting, createScene } from './core/scene.js';
 import { bindControlsToXR, createOrbitControls } from './interaction/controls.js';
+import { createHighlighter } from './interaction/highlight.js';
 import { enablePointerSelection } from './interaction/pointer.js';
 import { createSelectionHandler, createSelectionService } from './interaction/selection.js';
 import { createBackendBadge } from './ui/backend-badge.js';
+import { createPreferencesPanel } from './ui/preferences.js';
 import { createStatusFanout } from './ui/status-fanout.js';
 import { createStatusPanel } from './ui/status-panel.js';
 import { createWorldStatusPanel } from './ui/status-panel-3d.js';
@@ -28,15 +30,20 @@ const xrRenderer = createXRRenderer({ container });
 const { scene, camera } = createScene();
 addLighting(scene);
 
-// Point de vue desktop : recul et léger surplomb pour cadrer les six tables d'emblée.
+// Point de vue desktop : hauteur de salle, presque à hauteur d'œil, pour éviter
+// qu'un plafond nu ou un sol vide n'occupe la moitié de l'image.
 // En session immersive, la pose du casque remplace cette position.
-camera.position.set(0, 2.6, 4.4);
+camera.position.set(0, 1.95, 6.2);
 
 // ========== 2. RESTAURANT ET PANNEAUX DE STATUT ==========
 const { restaurant, tablesGroup } = buildRestaurant();
 scene.add(restaurant);
 
-const worldPanel = createWorldStatusPanel();
+// Panneau flottant réservé à la VR : côté écran, le panneau DOM du haut fait déjà
+// le travail et afficher les deux dupliquerait le message. En session immersive,
+// c'est le seul support lisible, car le DOM est invisible dans le casque.
+const worldPanel = createWorldStatusPanel({ position: [0, 2.55, -2.6], size: [3, 0.8] });
+worldPanel.object3D.visible = false;
 scene.add(worldPanel.object3D);
 
 // Le même état est publié sur deux supports : le DOM (desktop) et un panneau
@@ -49,26 +56,68 @@ const statusPanel = createStatusFanout([
 // ========== 3. ENTRÉES : MANETTE, SOURIS, ORBITE ==========
 const { controller } = setupControllers(xrRenderer.getRenderer(), scene);
 const selection = createSelectionService({ tablesGroup, statusPanel });
-controller.addEventListener('selectstart', createSelectionHandler({ tablesGroup, statusPanel }));
+const highlighter = createHighlighter({ tablesGroup });
+
+// Le panneau de préférences doit refléter l'état courant après chaque réservation :
+// sans ce rafraîchissement, une table réservée resterait proposée.
+const preferences = createPreferencesPanel({
+  container: document.getElementById('panel') ?? document.body,
+  getTables: () => tablesGroup.children.map((child) => child.userData),
+  onHighlight: (ids) => highlighter.highlight(ids),
+});
+
+const handleXRSelect = createSelectionHandler({ tablesGroup, statusPanel });
+controller.addEventListener('selectstart', (event) => {
+  handleXRSelect(event);
+  preferences.refresh();
+});
 
 const controls = createOrbitControls(camera, container);
 bindControlsToXR(xrRenderer.getRenderer(), controls);
-enablePointerSelection({ domElement: container, camera, select: selection.select });
+enablePointerSelection({
+  domElement: container,
+  camera,
+  select: (ray) => {
+    selection.select(ray);
+    preferences.refresh();
+  },
+});
 
 const badge = createBackendBadge();
 
 // ========== 4. BOUCLE DE RENDU ET REDIMENSIONNEMENT ==========
-xrRenderer.setAnimationLoop(() => {
+let lastTime = 0;
+
+xrRenderer.setAnimationLoop((time = 0) => {
   const renderer = xrRenderer.getRenderer();
+  const delta = lastTime === 0 ? 0 : (time - lastTime) / 1000;
+  lastTime = time;
 
   controls.update();
   worldPanel.update(camera);
+  worldPanel.object3D.visible = renderer.xr.isPresenting;
+  highlighter.update(delta);
   badge.update(renderer);
   renderer.render(scene, camera);
 });
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+/**
+ * Aligne la caméra et le buffer de rendu sur la taille réelle du conteneur.
+ * @returns {void}
+ */
+function applyViewportSize() {
+  const { width, height } = xrRenderer.resize();
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  xrRenderer.getRenderer().setSize(window.innerWidth, window.innerHeight);
-});
+}
+
+window.addEventListener('resize', applyViewportSize);
+
+// Un simple écouteur `resize` ne suffit pas : l'ouverture des outils de
+// développement ou un changement de mise en page modifie le conteneur sans
+// événement de fenêtre, et laisserait des bandes noires autour du canvas.
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(applyViewportSize).observe(container);
+}
+
+applyViewportSize();
