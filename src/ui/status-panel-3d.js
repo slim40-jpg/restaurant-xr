@@ -14,6 +14,7 @@ import {
   STATUS_TEXT_COLORS,
   TABLE_STATUS,
 } from '../config/constants.js';
+import { formatTableAttributes } from '../interaction/recommend.js';
 
 /** Géométrie du canvas en pixels, cadre arrondi, polices, interligne et lignes maximales. */
 const CANVAS_WIDTH = 640;
@@ -25,7 +26,7 @@ const BORDER_RADIUS = 24;
 const MAX_FONT_SIZE = 30;
 const MIN_FONT_SIZE = 20;
 const LINE_HEIGHT_RATIO = 1.25;
-const MAX_LINES = 2;
+const MAX_LINES = 3;
 const FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
 /** Trace un rectangle à coins arrondis dans le contexte courant. */
@@ -39,21 +40,22 @@ function roundedRectPath(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
-/** Découpe un texte en lignes selon la largeur disponible. */
+/** Découpe un texte en lignes selon la largeur disponible, en respectant les sauts explicites. */
 function splitLines(ctx, text, maxWidth) {
-  const words = text.split(/\s+/).filter(Boolean);
   const lines = [];
-  let current = '';
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (!current || ctx.measureText(candidate).width <= maxWidth) {
-      current = candidate;
-    } else {
-      lines.push(current);
-      current = word;
+  for (const paragraph of String(text).split('\n')) {
+    let current = '';
+    for (const word of paragraph.split(/\s+/).filter(Boolean)) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (!current || ctx.measureText(candidate).width <= maxWidth) {
+        current = candidate;
+      } else {
+        lines.push(current);
+        current = word;
+      }
     }
+    if (current) lines.push(current);
   }
-  if (current) lines.push(current);
   return lines;
 }
 
@@ -68,10 +70,8 @@ function ellipsize(ctx, text, maxWidth) {
 }
 
 /**
- * Choisit la taille de police et les lignes pour faire tenir le texte dans la zone utile.
- * Réduit la police de 30 à 20 px, puis se rabat sur deux lignes ellipsées.
- * @param {CanvasRenderingContext2D} ctx Contexte 2D (police appliquée).
- * @param {string} text Texte à disposer.
+ * Choisit la taille de police et les lignes pour faire tenir le texte.
+ * @param {CanvasRenderingContext2D} ctx Contexte 2D. @param {string} text Texte à disposer.
  * @param {number} maxWidth Largeur utile, en pixels. @param {number} maxHeight Hauteur utile.
  * @returns {{ lines: string[], lineHeight: number, fontSize: number }} Disposition retenue.
  */
@@ -95,8 +95,7 @@ function fitText(ctx, text, maxWidth, maxHeight) {
 
 /**
  * Redessine le cadre arrondi et le texte centré.
- * @param {CanvasRenderingContext2D} ctx Contexte 2D.
- * @param {string} text Texte à afficher. @param {string} color Couleur CSS du texte.
+ * @param {CanvasRenderingContext2D} ctx Contexte 2D. @param {string} text Texte. @param {string} color Couleur.
  * @returns {void}
  */
 function drawPanel(ctx, text, color) {
@@ -125,9 +124,9 @@ function drawPanel(ctx, text, color) {
 
 /**
  * Crée un panneau d'état lisible en VR, adossé à un plan orienté vers la caméra.
- * @param {{ position?: number[], size?: number[] }} [options] Position monde du plan et dimensions en mètres.
+ * @param {{ position?: number[], size?: number[] }} [options] Position monde du plan et dimensions monde.
  * @returns {{ object3D: THREE.Mesh, setMessage: function, showTable: function, showReserved: function,
- *   showNoTarget: function, update: function }} Mêmes méthodes que le panneau DOM, plus le maillage 3D.
+ *   showNoTarget: function, update: function }} Méthodes du panneau DOM, plus le maillage 3D.
  */
 export function createWorldStatusPanel({ position = [0, 2.3, -5.85], size = [1.9, 0.6] } = {}) {
   const canvas = document.createElement('canvas');
@@ -143,7 +142,6 @@ export function createWorldStatusPanel({ position = [0, 2.3, -5.85], size = [1.9
   object3D.position.set(position[0], position[1], position[2]);
   object3D.renderOrder = 10;
   const cameraWorldPosition = new THREE.Vector3();
-
   /**
    * Affiche un message libre avec la couleur demandée.
    * @param {string} text Contenu textuel. @param {string} [color] Couleur CSS du texte.
@@ -161,9 +159,11 @@ export function createWorldStatusPanel({ position = [0, 2.3, -5.85], size = [1.9
    */
   function showTable(tableData) {
     const label = STATUS_LABELS_FR[tableData.status] || tableData.status;
+    const attributes = formatTableAttributes(tableData);
+    const heading = attributes ? `Table ${tableData.id} — ${attributes}` : `Table ${tableData.id}`;
     const { available, unavailableStatus } = STATUS_TEXT_COLORS;
     const color = tableData.status === TABLE_STATUS.AVAILABLE ? available : unavailableStatus;
-    setMessage(`Table sélectionnée : ${tableData.id} — ${label}`, color);
+    setMessage(`${heading}\n${label}`, color);
   }
 
   /**

@@ -1,12 +1,23 @@
 /**
  * @file    src/ui/status-panel.js
- * @brief   Rendu DOM du panneau d'état affichant la table visée et son statut.
+ * @brief   Rendu DOM du panneau d'état affichant la table visée, ses attributs et son statut.
  * @author  Hazem Bellili — Intégration assets / UI
- * @date    2026-11-10
+ * @date    2026-11-11
  * @role    Seul point de contact avec le DOM pour les messages de sélection ; aucune dépendance Three.js.
  */
 
 import { STATUS_LABELS_FR, STATUS_TEXT_COLORS } from '../config/constants.js';
+import { formatTableAttributes } from '../interaction/recommend.js';
+
+/**
+ * Compose l'en-tête d'une table : identifiant puis attributs lisibles.
+ * @param {{ id: string, zone?: string, capacity?: number, features?: string[] }} tableData Données de la table.
+ * @returns {string} Texte du type `Table T05 — Près de la fenêtre · 4 places · Au calme`.
+ */
+function formatTableHeading(tableData) {
+  const attributes = formatTableAttributes(tableData);
+  return attributes ? `Table ${tableData.id} — ${attributes}` : `Table ${tableData.id}`;
+}
 
 /**
  * Crée un contrôleur du panneau d'état lié à un élément DOM.
@@ -26,13 +37,15 @@ export function createStatusPanel(element) {
   }
 
   /**
-   * Affiche la table sélectionnée et son libellé d'état.
-   * @param {{ id: string, status: string }} tableData Données de la table visée.
+   * Affiche la table sélectionnée, ses attributs puis son libellé d'état sur une seconde ligne.
+   * @param {{ id: string, status: string, zone?: string, capacity?: number, features?: string[] }} tableData
+   *   Données de la table visée.
    * @returns {void}
    */
   function showTable(tableData) {
     const label = STATUS_LABELS_FR[tableData.status] || tableData.status;
-    element.textContent = `Table sélectionnée : ${tableData.id} — ${label}`;
+    element.style.whiteSpace = 'pre-line';
+    element.textContent = `${formatTableHeading(tableData)}\n${label}`;
     element.style.color =
       tableData.status === 'available' ? STATUS_TEXT_COLORS.available : STATUS_TEXT_COLORS.unavailableStatus;
   }

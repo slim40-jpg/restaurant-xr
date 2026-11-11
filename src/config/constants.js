@@ -18,9 +18,6 @@ export const FAR = 100;
 /** Hauteur des yeux de l'utilisateur en mètres. */
 export const EYE_HEIGHT = 1.6;
 
-/** Dimensions de la salle en mètres. */
-export const ROOM = Object.freeze({ WIDTH: 14, DEPTH: 12, HEIGHT: 3 });
-
 /** États possibles d'une table. */
 export const TABLE_STATUS = Object.freeze({
   AVAILABLE: 'available',
@@ -58,12 +55,47 @@ export const STATUS_ELEMENT_ID = 'status';
 /** Message affiché avant toute sélection. */
 export const INITIAL_STATUS_MESSAGE = 'Pointez une table et appuyez sur la gâchette';
 
-/** Disposition initiale des tables dans la salle. */
-export const TABLE_LAYOUT = Object.freeze([
-  { x: -3, z: -3, status: 'available' },
-  { x: 0, z: -3, status: 'occupied' },
-  { x: 3, z: -3, status: 'reserved' },
-  { x: -3, z: 1, status: 'available' },
-  { x: 0, z: 1, status: 'unavailable' },
-  { x: 3, z: 1, status: 'available' },
-]);
+/**
+ * Zones de la salle. Une table appartient à une seule zone : c'est le premier
+ * critère de choix d'un client (« près de la fenêtre », « au calme », …).
+ */
+export const ZONES = Object.freeze({
+  WINDOW: 'window',
+  CORNER: 'corner',
+  CENTER: 'center',
+  BAR: 'bar',
+  BANQUETTE: 'banquette',
+});
+
+/** Caractéristiques secondaires d'une table, cumulables. */
+export const TABLE_FEATURES = Object.freeze({
+  QUIET: 'quiet',
+  PRIVATE: 'private',
+  VIEW: 'view',
+  NEAR_WC: 'near_wc',
+  NEAR_ENTRANCE: 'near_entrance',
+});
+
+/** Libellés français des zones, affichés dans l'interface. */
+export const ZONE_LABELS_FR = Object.freeze({
+  window: 'Près de la fenêtre',
+  corner: 'Coin',
+  center: 'Salle',
+  bar: 'Au bar',
+  banquette: 'Banquette',
+});
+
+/** Libellés français des caractéristiques, affichés dans l'interface. */
+export const FEATURE_LABELS_FR = Object.freeze({
+  quiet: 'Au calme',
+  private: "À l'écart",
+  view: 'Vue extérieure',
+  near_wc: 'Près des WC',
+  near_entrance: "Près de l'entrée",
+});
+
+/** Tailles de groupe proposées au client. */
+export const PARTY_SIZES = Object.freeze([2, 4, 6]);
+
+// Le plan de salle (dimensions, 16 tables, points d'ancrage) vit dans
+// `src/world/layout.js` : c'est une donnée de monde, pas une constante de configuration.

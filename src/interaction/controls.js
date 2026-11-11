@@ -20,12 +20,12 @@ export function createOrbitControls(camera, domElement) {
   const controls = new OrbitControls(camera, domElement);
 
   // Cible au centre de la salle : cadre les tables sans demander de réglage manuel.
-  controls.target.set(0, 1.4, -2);
+  controls.target.set(0, 1.5, -2);
   controls.enableDamping = true;
   // Amortissement doux : évite les à-coups qui donnent une impression de caméra cassée.
   controls.dampingFactor = 0.08;
-  controls.minDistance = 1.5;
-  controls.maxDistance = 9;
+  controls.minDistance = 2.5;
+  controls.maxDistance = 18;
   // Jamais sous le sol : un angle polaire proche de PI placerait la caméra sous le plancher.
   controls.maxPolarAngle = Math.PI * 0.49;
   // Pas de pan : le panoramique désorienterait l'utilisateur et sortirait du cadre.
