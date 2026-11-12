@@ -66,15 +66,12 @@ utilisation de `latest`.
 
 | Bibliothèque | Version | Rôle effectif dans le code | Fichier |
 | --- | --- | --- | --- |
-| **three** | r160 (`0.160.0`) | Scène, matériaux, éclairage, raycasting, boucle XR | tous les modules |
-| `three/addons/webxr/VRButton.js` | r160 | Bouton « Enter VR » et encapsulation de `requestSession('immersive-vr')` | `src/xr/controllers.js` |
-| `three/addons/webxr/XRControllerModelFactory.js` | r160 | Modèles 3D officiels des manettes | `src/xr/controllers.js` |
+| **three** | r187 (`0.187.0`) | Scène, matériaux, éclairage, raycasting, boucle XR | tous les modules |
+| `three/addons/webxr/VRButton.js` | r187 | Bouton VR et encapsulation de `requestSession('immersive-vr')` | `src/xr/controllers.js` |
+| `three/addons/webxr/ARButton.js` | r187 | Bouton AR et encapsulation de `requestSession('immersive-ar')` avec `local-floor` | `src/xr/controllers.js` |
+| `three/addons/webxr/XRControllerModelFactory.js` | r187 | Modèles 3D officiels des manettes | `src/xr/controllers.js` |
 
-**Non utilisés à ce jour** (ne pas documenter comme actifs) : `GLTFLoader`,
-`CanvasTexture`, `OrbitControls`. Leur ajout est planifié en W4.
-
-**Migration planifiée** : passage à `three@0.187.0` avec `WebGPURenderer` et repli
-WebGL2 au jalon W2 (voir `docs/adr/`, ADR-0005 à venir).
+`GLTFLoader` n'est pas utilisé à ce jour ; son ajout est planifié en W4.
 
 ---
 
