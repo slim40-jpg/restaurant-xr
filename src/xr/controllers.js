@@ -1,12 +1,13 @@
 /**
  * @file    src/xr/controllers.js
- * @brief   Bouton VR, contrôleurs WebXR, modèle de manette et rayon de visée.
+ * @brief   Boutons VR/AR, contrôleurs WebXR, modèle de manette et rayon de visée.
  * @author  Slim Selmi — Développement 3D / WebXR
  * @date    2026-11-11
  * @role    Prépare les entrées WebXR ; la logique de sélection est branchée par l'appelant.
  */
 
 import * as THREE from 'three/webgpu';
+import { ARButton } from 'three/addons/webxr/ARButton.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 
@@ -18,15 +19,23 @@ import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFa
 const SESSION_FEATURES = ['local-floor', 'bounded-floor', 'webgpu'];
 
 /**
- * Ajoute le bouton d'entrée en VR, un contrôleur avec son modèle 3D et une ligne de visée.
+ * Ajoute les boutons d'entrée VR/AR, un contrôleur avec son modèle 3D et une ligne de visée.
  * @param {THREE.WebGPURenderer} renderer Renderer dont la session XR est utilisée.
  * @param {THREE.Scene} scene Scène dans laquelle les contrôleurs sont ajoutés.
- * @returns {{ controller: THREE.XRController, grip: THREE.XRControllerGrip, button: HTMLElement }}
- *   Le contrôleur principal, son grip et le bouton injecté dans le document.
+ * @returns {{
+ *   controller: THREE.XRController,
+ *   grip: THREE.XRControllerGrip,
+ *   button: HTMLElement,
+ *   arButton: HTMLElement
+ * }} Le contrôleur principal, son grip et les boutons injectés dans le document.
  */
 export function setupControllers(renderer, scene) {
   const button = VRButton.createButton(renderer, { optionalFeatures: SESSION_FEATURES });
-  document.body.appendChild(button);
+  const arButton = ARButton.createButton(renderer, {
+    requiredFeatures: ['local-floor'],
+  });
+  arButton.style.bottom = '60px';
+  document.body.append(button, arButton);
 
   const controllerModelFactory = new XRControllerModelFactory();
 

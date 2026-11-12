@@ -216,14 +216,15 @@ Règles :
 
 | API | Rôle | Module | Preuve |
 | --- | --- | --- | --- |
-| **WebXR Device API** | Ouverture de session `immersive-vr`, poses tête/manettes | `xr/controllers.js` | `renderer.xr.enabled = true`, `VRButton.createButton` |
+| **WebXR Device API** | Ouverture de sessions `immersive-vr` et `immersive-ar`, poses tête/manettes | `xr/controllers.js` | `renderer.xr.enabled = true`, `VRButton.createButton`, `ARButton.createButton` |
+| **WebXR local-floor** | Ancrage de la scène à la hauteur du sol réel en AR et VR | `xr/controllers.js` | `ARButton.createButton(..., { requiredFeatures: ['local-floor'] })` |
 | **WebGPU** | Rendu GPU principal (three r187) | `core/renderer.js` | `new THREE.WebGPURenderer()` — `renderer.backend.isWebGPUBackend` |
 | **WebGL 2.0** | Rendu GPU de repli, **y compris pendant une session XR** | `core/renderer.js` | `new THREE.WebGPURenderer({ forceWebGL: true })` via `setupWebGLXRFallback` |
 | **WebXR Input Sources** | Manettes, `handedness`, `gamepad`, `gripSpace` | `xr/controllers.js` | `renderer.xr.getController(0)`, `getControllerGrip(0)` |
 | **Gamepad API** | Axes joystick et gâchette (locomotion W4) | `xr/controllers.js` (à venir : `xr/locomotion.js`) | `session.inputSources[i].gamepad` |
 | **`XRSession.requestAnimationFrame`** | Boucle synchronisée au casque | `main.js` | `renderer.setAnimationLoop(...)` |
 | **Pointer Events** | Sélection à la souris, distinction clic / glisser d'orbite | `interaction/pointer.js` | `pointerdown` / `pointerup` + `getBoundingClientRect()` |
-| **DOM API** | Panneau de statut, bouton VR, badge de backend | `ui/status-panel.js`, `ui/backend-badge.js`, `xr/controllers.js` | `document.getElementById('status')` |
+| **DOM API** | Panneau de statut, boutons VR/AR, badge de backend | `ui/status-panel.js`, `ui/backend-badge.js`, `xr/controllers.js` | `document.getElementById('status')` |
 | **Canvas 2D + `CanvasTexture`** | Panneau de statut lisible **dans le casque** | `ui/status-panel-3d.js` | `new THREE.CanvasTexture(canvas)` |
 | **Raycaster (three.js)** | Intersection rayon ↔ tables | `interaction/selection.js` | `raycaster.intersectObjects(tablesGroup.children, true)` |
 
