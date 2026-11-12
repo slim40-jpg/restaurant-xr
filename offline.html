@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hors-ligne — Restaurant XR</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #0d0d16;
+        color: #fff;
+        font-family: system-ui, sans-serif;
+      }
+      main {
+        max-width: 44ch;
+        text-align: center;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 28px;
+        font-weight: 600;
+      }
+      p {
+        margin: 0 0 24px;
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.55;
+      }
+      button {
+        padding: 11px 22px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        background: #fff;
+        color: #0d0d16;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover {
+        background: rgba(255, 255, 255, 0.86);
+      }
+      button:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Hors-ligne</h1>
+      <p>
+        Vous n'avez pas de connexion réseau. Une fois installée, l'application continue de fonctionner
+        hors-ligne : la salle 3D et la réservation restent accessibles.
+      </p>
+      <button type="button" onclick="location.reload()">Réessayer</button>
+    </main>
+  </body>
+</html>
