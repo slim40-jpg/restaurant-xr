@@ -7,6 +7,7 @@
  */
 
 import { STATUS_ELEMENT_ID } from './config/constants.js';
+import { registerServiceWorker } from './core/pwa.js';
 import { createXRRenderer } from './core/renderer.js';
 import { addLighting, createScene } from './core/scene.js';
 import { bindControlsToXR, createOrbitControls } from './interaction/controls.js';
@@ -19,6 +20,7 @@ import { createStatusFanout } from './ui/status-fanout.js';
 import { createStatusPanel } from './ui/status-panel.js';
 import { createWorldStatusPanel } from './ui/status-panel-3d.js';
 import { buildRestaurant } from './world/restaurant.js';
+import { setupAR } from './xr/ar.js';
 import { setupControllers } from './xr/controllers.js';
 
 // Le canvas est monté dans ce conteneur stable : lors du basculement de backend
@@ -85,17 +87,35 @@ enablePointerSelection({
 
 const badge = createBackendBadge();
 
+// Le mode AR est indépendant de la session VR : même page, deux boutons, deux cycles de vie.
+const ar = setupAR({
+  renderer: xrRenderer.getRenderer(),
+  scene,
+  restaurant,
+  worldPanel,
+});
+
+// Le verdict n'est connu qu'après l'initialisation du backend : c'est lui qui décide
+// si l'écran de blocage « WebGPU requis » doit s'afficher (géré par le renderer).
+void xrRenderer.init().then((status) => {
+  badge.update(xrRenderer.getRenderer(), status.reason);
+});
+
+// Enregistrement du service worker (ignoré hors contexte sécurisé).
+registerServiceWorker();
+
 // ========== 4. BOUCLE DE RENDU ET REDIMENSIONNEMENT ==========
 let lastTime = 0;
 
-xrRenderer.setAnimationLoop((time = 0) => {
+xrRenderer.setAnimationLoop((time = 0, frame = null) => {
   const renderer = xrRenderer.getRenderer();
   const delta = lastTime === 0 ? 0 : (time - lastTime) / 1000;
   lastTime = time;
 
   controls.update();
   worldPanel.update(camera);
-  worldPanel.object3D.visible = renderer.xr.isPresenting;
+  worldPanel.object3D.visible = renderer.xr.isPresenting && renderer.xr.getSession()?.mode !== 'immersive-ar';
+  ar.update(frame);
   highlighter.update(delta);
   badge.update(renderer);
   renderer.render(scene, camera);

@@ -20,7 +20,9 @@ import { createProps } from './props.js';
  */
 export function buildRestaurant() {
   const restaurant = new THREE.Group();
-  restaurant.add(createEnvironment());
+  const environment = createEnvironment();
+  environment.userData.isEnvironment = true;
+  restaurant.add(environment);
   restaurant.add(createProps());
 
   const tablesGroup = new THREE.Group();
