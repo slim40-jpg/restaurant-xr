@@ -102,6 +102,11 @@ chaque bloc a été relu, exécuté et validé par l'équipe.
 | Documentation (`docs/`, README) | Structuration et relecture | Chaque affirmation a été confrontée au code ; les fonctionnalités absentes ont été retirées du README et du présent document |
 | Modularisation et outillage (W1) | Refactorisation assistée, configuration ESLint/Prettier | `npm run verify` exécuté, recette manuelle de `technical_specs.md` §10 rejouée, comparaison du comportement avant/après |
 
+> **Journal des prompts** : à partir du jalon W4, chaque prompt utilisé est consigné
+> dans `docs/prompts/AAAA-MM-JJ-<jalon>.md`, conformément à la règle §8 de
+> [`CONTRIBUTING.md`](CONTRIBUTING.md). Ce journal est la pièce justificative de la
+> présente déclaration.
+
 ---
 
 ## 5. Déclaration sur l'honneur

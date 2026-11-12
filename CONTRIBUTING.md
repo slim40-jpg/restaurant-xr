@@ -82,6 +82,7 @@ lisible dans l'historique Git.
 - [ ] Chaque nouveau fichier `src/**` porte l'en-tête `@file / @author / @date / @role`.
 - [ ] Chaque fonction exportée est documentée en JSDoc (`@param`, `@returns`).
 - [ ] La documentation concernée est mise à jour dans la même PR.
+- [ ] Les prompts utilisés avec un assistant IA sont consignés dans `docs/prompts/` (voir §8).
 - [ ] Une preuve est fournie : commande + sortie, capture, ou URL.
 
 ---
@@ -104,6 +105,9 @@ python -m http.server 8000
 
 ## Risques / dette
 <ce qui reste ouvert, ce qui a été reporté>
+
+## Prompts IA
+<chemin du fichier de journal, ex. docs/prompts/2026-11-18-w4-teleportation.md>
 ```
 
 ---
@@ -125,3 +129,79 @@ python -m http.server 8000
 - Une fonction fait une chose ; au-delà de 40 lignes, la découper.
 - Commentaires en français, orientés **pourquoi**, jamais une paraphrase du code.
 - Aucun `console.log` laissé dans le code livré.
+
+---
+
+## 8. Traçabilité des prompts IA (exigence pédagogique)
+
+L'enseignant demande que **chaque prompt** utilisé avec un assistant pour produire du
+code, de la documentation ou des tests soit consigné dans le dépôt. Ce journal est la
+preuve du processus : il montre ce qui a été demandé, ce qui a été produit, et ce que
+l'étudiant a vérifié ou corrigé ensuite. Il complète la déclaration d'usage de l'IA
+de [`ATTRIBUTION.md`](ATTRIBUTION.md) §4, qui reste obligatoire.
+
+### 8.1 Où
+
+Un fichier par séance de travail :
+
+```
+docs/prompts/AAAA-MM-JJ-<jalon>.md
+# ex. docs/prompts/2026-11-18-w4-teleportation.md
+```
+
+Si une séance couvre plusieurs jalons, suffixer : `2026-11-18-w4-w5-teleportation-backend.md`.
+Le dossier est créé à la première séance qui suit la mise en place de cette règle.
+
+### 8.2 Quand
+
+**Au moment où le prompt est utilisé**, pas reconstitué après coup. Un prompt oublié
+est un prompt non traçable : on l'indique comme tel (`non consigné`) plutôt que de
+l'inventer.
+
+### 8.3 Quoi
+
+Une entrée par prompt, dans l'ordre chronologique :
+
+```markdown
+## 2026-11-18T14:32 — Wassim Hajji
+- **Outil / modèle** : Claude, Sonnet 4.5 (mode agent)
+- **Objectif** : implémenter la téléportation au joystick
+
+### Prompt (verbatim)
+
+> <le prompt tel qu'il a été envoyé, sans reformulation>
+
+### Sous-tâches déléguées (le cas échéant)
+
+| Agent | Brief (verbatim ou résumé fidèle) | Fichiers touchés |
+| --- | --- | --- |
+| designer | <brief> | `src/world/**` |
+
+### Résultat produit
+
+- `src/xr/locomotion.js` (créé), `src/main.js:42-58` (modifié)
+
+### Vérification étudiante
+
+- `npm run verify` → 21/21
+- Téléportation testée sur Quest : OK / NOK (préciser)
+
+### Corrections apportées au code généré
+
+- <ce qui a été changé, et pourquoi>
+```
+
+### 8.4 Règles
+
+1. **Verbatim** : le prompt est recopié tel quel. Une reformulation ultérieure est
+   signalée comme telle.
+2. **Aucune donnée sensible** : pas de clé d'API, de jeton, de mot de passe ni de
+   donnée personnelle dans un prompt consigné.
+3. **Même PR** : le journal accompagne le code qu'il a produit. Une PR sans son
+   journal est incomplète (voir §4).
+4. **Les échecs comptent** : un prompt qui n'a rien produit d'utilisable est consigné
+   avec la mention `rejeté` et la raison. C'est la partie la plus crédible du journal.
+5. **Référencer, pas recopier** : on cite les fichiers par `chemin:ligne`, on ne colle
+   pas des fichiers entiers dans le prompt.
+6. **Un modèle = une ligne** : si le modèle ou l'outil change en cours de séance,
+   nouvelle entrée.
