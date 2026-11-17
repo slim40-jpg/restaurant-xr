@@ -290,6 +290,84 @@ HTTPS. La salle réaliste et le choix de place sont livrés en avance sur W4.
 
 ---
 
+## Semaine 4 — Le lieu réel : étage, jardin, marche et menu
+
+**Branche** : `feat/lieu-reel` · **Date** : 2026-11-17
+
+### Livré
+
+| Élément | Détail |
+| --- | --- |
+| Bâtiment | Hauteur 6,30 m : rez 0 → 3,00, dalle, **mezzanine 3,25 → 6,30** sur la moitié arrière |
+| Escalier | 14 marches, 1,20 m de large, axe x = −7,0, z de −1,0 à +3,2, garde-corps et main courante |
+| Jardin | Terrasse bois z ∈ [7,2 ; 16], pergola, guirlandes émissives, haies, 4 tables |
+| Tables | **24** : 16 au rez, 4 en mezzanine (T21–T24), 4 en terrasse (T17–T20), toutes avec `level` |
+| Marche | Caméra à hauteur d'yeux, ZQSD/WASD, souris (pointer lock), collision murs/bar/garde-corps, montée d'escalier lissée, bascule `V` |
+| Fiche table | Clic = fiche + **menu de 16 plats** ; la réservation passe par un bouton explicite |
+| Surfaces | `walkable.js` : surfaces praticables + colliders, testables sans Three.js |
+
+### Vérifié
+
+```bash
+$ npm run verify
+36/36 fichier(s) conforme(s).
+All matched files use Prettier code style!
+(eslint : aucune erreur)
+
+$ tests/smoke.html
+29/29 assertions réussies.
+```
+
+Dont les nouvelles : 24 tables · identifiants `T01..T24` uniques · chaque table porte
+zone, capacité, caractéristiques **et niveau** · **la sélection ne réserve pas** ·
+`onSelect` transmet la table visée · `reserve()` applique la transition · `reserve()`
+refuse une table déjà réservée · la manette ne réserve pas non plus.
+
+**Logique de marche, testée sous Node** (valeurs réelles) :
+
+```
+avance libre 1 s            → x = 2,800 m
+mur à 1 m, poussée de 2 m   → x = 0,720 m  (marge = rayon 0,280) — jamais traversé
+glissement le long du mur   → x bloqué, z = 1,808 m parcouru
+surface absente             → déplacement annulé
+rampe d'escalier            → y = 2,979 m après 1 s (lissage dt × 12)
+pitch extrême               → 1,396 rad = 80° (écrêtage exact)
+```
+
+**Application**, page servie en HTTP :
+
+```
+canvas        : three.js r187 webgpu
+view-toggle   : présent, bouton « Marcher » rendu
+table-card    : conteneur présent
+écran WebGPU  : non affiché
+```
+
+### NON VÉRIFIÉ
+
+- **Capture du nouveau lieu** : impossible en headless, `WebGPURenderer` n'obtient pas
+  d'adaptateur (le rendu ne produit aucune frame). À refaire sur une machine avec GPU.
+  La capture du README reste celle du jalon W3, avec une légende explicite.
+- **Pointer lock en conditions réelles** : le test navigateur automatisé ne peut pas
+  verrouiller le pointeur.
+- **Montée d'escalier à l'écran** : validée par la logique pure, pas visuellement.
+
+### Commits
+
+```
+f5c6731 feat(world): batiment a deux niveaux, escalier et jardin-terrasse
+290cabc feat(ui): fiche de table avec menu et reservation explicite
+e993a2d feat(interaction): marcher dans le restaurant a hauteur d yeux
+4dafe04 feat(app): cabler la marche, la fiche table et les trois niveaux
+```
+
+### Prochaine étape
+
+**W5** : PWA (manifeste, service worker, hors-ligne) — seule remarque du jury encore
+ouverte — puis téléportation VR. Le backend suit en W6/W7.
+
+---
+
 ## Modèle pour les semaines suivantes
 
 ````markdown
