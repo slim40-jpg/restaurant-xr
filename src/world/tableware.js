@@ -8,7 +8,7 @@
 
 import * as THREE from 'three';
 
-import { PALETTE, TABLE_CATALOGUE } from './layout.js';
+import { LEVEL_HEIGHT, PALETTE, TABLE_CATALOGUE } from './layout.js';
 
 /** Altitude du dessus de table (nappe comprise). */
 const SURFACE_Y = 0.8;
@@ -130,13 +130,13 @@ function addCandle(group) {
 
 /**
  * Crée le groupe des couverts de toutes les tables du plan.
- * @returns {THREE.Group} Assiettes, verres, serviettes, menus et bougeoirs de la salle.
+ * @returns {THREE.Group} Assiettes, verres, serviettes, menus et bougeoirs des trois niveaux.
  */
 export function createTableware() {
   const tableware = new THREE.Group();
   TABLE_CATALOGUE.forEach((entry, index) => {
     const group = new THREE.Group();
-    group.position.set(entry.x, 0, entry.z);
+    group.position.set(entry.x, LEVEL_HEIGHT[entry.level], entry.z);
     group.rotation.y = entry.rotation;
     seatLayout(entry).forEach((seat) => {
       addCover(group, seat);

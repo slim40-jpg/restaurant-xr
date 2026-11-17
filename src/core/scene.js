@@ -1,8 +1,8 @@
 /**
  * @file    src/core/scene.js
- * @brief   Création de la scène, de la caméra et de l'éclairage « bistrot le soir ».
+ * @brief   Scène, caméra et éclairage « bistrot le soir » sur deux niveaux et en terrasse.
  * @author  Slim Selmi — Développement 3D / WebXR
- * @date    2026-11-11
+ * @date    2026-11-12
  * @role    Initialise le graphe de scène et les lumières consommés par le rendu et la WebXR.
  */
 
@@ -10,62 +10,66 @@ import * as THREE from 'three';
 
 import { EYE_HEIGHT, FAR, FOV, NEAR, SCENE_BACKGROUND_COLOR } from '../config/constants.js';
 
+/** Couleur des lampes intérieures et de la terrasse. */
+const WARM = 0xffb46b;
+
 /**
  * Crée la scène et la caméra perspective positionnée à hauteur des yeux.
  * @returns {{ scene: THREE.Scene, camera: THREE.PerspectiveCamera }} La scène et sa caméra.
  */
 export function createScene() {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(SCENE_BACKGROUND_COLOR); // Fond sombre bleu nuit
+  scene.background = new THREE.Color(SCENE_BACKGROUND_COLOR);
 
   const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, NEAR, FAR);
-  camera.position.set(0, EYE_HEIGHT, 0); // Hauteur des yeux
+  camera.position.set(0, EYE_HEIGHT, 0);
 
   return { scene, camera };
 }
 
 /**
- * Ajoute l'éclairage de la salle : ambiance basse, lumière froide de la baie vitrée et
- * lampes chaudes ponctuelles au-dessus des zones.
+ * Ajoute l'éclairage du lieu : jour froid venu de la baie, lampes chaudes au rez-de-chaussée,
+ * à l'étage et sur la terrasse. La terrasse ne reçoit que deux ponctuelles : les guirlandes
+ * du jardin sont émissives, jamais lumineuses, pour tenir le budget de rendu.
  * @param {THREE.Scene} scene Scène à éclairer.
  * @returns {void}
  */
 export function addLighting(scene) {
-  // Ambiante faible et hémisphérique pour garder les ombres lisibles sans écraser le décor.
-  scene.add(new THREE.AmbientLight(0xffffff, 0.34));
-  scene.add(new THREE.HemisphereLight(0x9fb6d8, 0x3a2a1c, 0.5));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.32));
+  scene.add(new THREE.HemisphereLight(0x9fb6d8, 0x3a2a1c, 0.55));
 
-  // Lumière froide venant de la baie vitrée (X négatif) : source principale et ombres.
-  const windowLight = new THREE.DirectionalLight(0xbdd2ec, 1.2);
-  windowLight.position.set(-14, 6, 2);
-  windowLight.target.position.set(2, 0, -1);
-  windowLight.castShadow = true;
-  windowLight.shadow.mapSize.set(2048, 2048);
-  windowLight.shadow.camera.left = -14;
-  windowLight.shadow.camera.right = 14;
-  windowLight.shadow.camera.top = 10;
-  windowLight.shadow.camera.bottom = -10;
-  windowLight.shadow.camera.near = 1;
-  windowLight.shadow.camera.far = 40;
-  windowLight.shadow.bias = -0.0002;
-  // Biais de normale élevé + carte 2048 : la boîte d'ombre couvre 28 m, et une
-  // résolution insuffisante produisait des traînées diagonales sur les murs.
-  windowLight.shadow.normalBias = 0.14;
-  windowLight.shadow.mapSize.set(2048, 2048);
-  scene.add(windowLight);
-  scene.add(windowLight.target);
+  // Lumière froide de la baie (X négatif) : source principale et ombres portées. La carte
+  // couvre désormais la terrasse (z jusqu'à 16) : 26 m de côté et 60 m de portée.
+  const daylight = new THREE.DirectionalLight(0xbdd2ec, 1.15);
+  daylight.position.set(-18, 11, 8);
+  daylight.target.position.set(0, 0, 3);
+  daylight.castShadow = true;
+  daylight.shadow.mapSize.set(2048, 2048);
+  daylight.shadow.camera.left = -26;
+  daylight.shadow.camera.right = 26;
+  daylight.shadow.camera.top = 24;
+  daylight.shadow.camera.bottom = -24;
+  daylight.shadow.camera.near = 1;
+  daylight.shadow.camera.far = 60;
+  daylight.shadow.bias = -0.0002;
+  daylight.shadow.normalBias = 0.14;
+  scene.add(daylight);
+  scene.add(daylight.target);
 
-  // Lampes chaudes au-dessus des zones (fenêtre, centre, banquette, bar).
-  // Posées à 2,5 m et non 2,9 m : à 50 cm du plafond, une lampe ponctuelle
-  // produisait une tache blanche écrasée au-dessus de la salle.
-  const warm = 0xffb46b;
+  // Lampes chaudes : [x, y, z, intensité, portée]. Posées à 0,4–0,8 m du plafond pour éviter
+  // la tache blanche qu'une lampe collée à la dalle produisait au-dessus des tables.
   [
-    [-8.5, 2.5, -1.0, 8],
-    [0, 2.5, 0.5, 9],
-    [-2.5, 2.5, -5.0, 7],
-    [8.0, 2.5, 2.0, 8],
-  ].forEach(([x, y, z, intensity]) => {
-    const lamp = new THREE.PointLight(warm, intensity, 11, 2);
+    [-8.5, 2.5, -1.0, 7, 11],
+    [-2.5, 2.5, -5.0, 7, 11],
+    [8.0, 2.5, 2.0, 7, 11],
+    [0.0, 4.6, 2.4, 12, 15],
+    [-6.5, 5.6, -3.6, 7, 11],
+    [1.5, 5.6, -3.6, 7, 11],
+    [8.0, 5.6, -3.2, 6, 10],
+    [-4.0, 2.4, 11.6, 9, 10],
+    [3.4, 2.4, 13.4, 8, 10],
+  ].forEach(([x, y, z, intensity, distance]) => {
+    const lamp = new THREE.PointLight(WARM, intensity, distance, 2);
     lamp.position.set(x, y, z);
     scene.add(lamp);
   });

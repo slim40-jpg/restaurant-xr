@@ -9,8 +9,11 @@
 import * as THREE from 'three';
 
 import { ZONES } from '../config/constants.js';
-import { PALETTE, ROOM_ANCHORS, TABLE_CATALOGUE } from './layout.js';
+import { LEVEL_HEIGHT, LEVELS, PALETTE, ROOM_ANCHORS, ROOM_LAYOUT, TABLE_CATALOGUE } from './layout.js';
 import { createTableware } from './tableware.js';
+
+/** Hauteurs de référence du bâtiment, lues par les suspensions. */
+const { HEIGHT, GROUND_HEIGHT } = ROOM_LAYOUT;
 
 /** Matériaux partagés des accessoires. */
 const MAT = {
@@ -118,13 +121,16 @@ function createPlants(parent) {
   });
 }
 
-/** Lampes suspendues au-dessus des tables de salle, banquette et bar. */
+/** Lampes suspendues : le fil part du plafond réel du niveau (6,2 m en double hauteur, 2,95 m sous dalle). */
 function createPendants(parent) {
-  const litZones = [ZONES.CENTER, ZONES.BANQUETTE, ZONES.BAR];
+  const litZones = [ZONES.CENTER, ZONES.BANQUETTE, ZONES.BAR, ZONES.MEZZANINE];
   TABLE_CATALOGUE.filter((t) => litZones.includes(t.zone)).forEach((t) => {
-    addMesh(parent, GEO.wire, MAT.brass, t.x, 2.95, t.z);
-    addMesh(parent, GEO.shade, MAT.wine, t.x, 2.55, t.z);
-    addMesh(parent, GEO.bulb, MAT.bulb, t.x, 2.44, t.z);
+    const base = LEVEL_HEIGHT[t.level];
+    const ceiling = t.level === LEVELS.MEZZANINE || t.z > -1 ? HEIGHT - 0.1 : GROUND_HEIGHT - 0.05;
+    const wire = addMesh(parent, GEO.wire, MAT.brass, t.x, (ceiling + base + 2.44) / 2, t.z);
+    wire.scale.y = (ceiling - base - 2.44) / 0.7;
+    addMesh(parent, GEO.shade, MAT.wine, t.x, base + 2.55, t.z);
+    addMesh(parent, GEO.bulb, MAT.bulb, t.x, base + 2.44, t.z);
   });
 }
 
@@ -153,9 +159,7 @@ function createAccents(parent) {
 
   addBox(parent, 0.05, 0.9, 0.7, MAT.brass, 10.9, 1.8, 5.4);
   addBox(parent, 0.02, 0.78, 0.58, MAT.charcoal, 10.86, 1.8, 5.4);
-  for (let i = 0; i < 4; i += 1) {
-    addBox(parent, 0.01, 0.02, 0.4, MAT.cream, 10.84, 1.98 - i * 0.1, 5.4);
-  }
+  for (let i = 0; i < 4; i += 1) addBox(parent, 0.01, 0.02, 0.4, MAT.cream, 10.84, 1.98 - i * 0.1, 5.4);
 }
 
 /** Mur du bar : tableaux abstraits au-dessus du comptoir et ardoise de menu à côté du bar. */

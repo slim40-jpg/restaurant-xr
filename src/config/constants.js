@@ -65,6 +65,8 @@ export const ZONES = Object.freeze({
   CENTER: 'center',
   BAR: 'bar',
   BANQUETTE: 'banquette',
+  MEZZANINE: 'mezzanine',
+  TERRACE: 'terrace',
 });
 
 /** Caractéristiques secondaires d'une table, cumulables. */
@@ -83,6 +85,8 @@ export const ZONE_LABELS_FR = Object.freeze({
   center: 'Salle',
   bar: 'Au bar',
   banquette: 'Banquette',
+  mezzanine: "À l'étage",
+  terrace: 'En terrasse',
 });
 
 /** Libellés français des caractéristiques, affichés dans l'interface. */
