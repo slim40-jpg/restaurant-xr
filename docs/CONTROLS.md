@@ -64,3 +64,26 @@ leur intervalle vertical recouvre `[y, y + 1,65 m]` : le garde-corps de mezzanin
 - `surfaceHeightAt(x, z)` sans niveau renvoie la surface la plus haute : sous la mezzanine, la
   dalle (3,25 m) gagne sur le parquet. Un parcours au rez-de-chaussée sous la mezzanine exige
   donc que l'appelant fournisse un `surfaceHeightAt` conscient du niveau courant.
+
+---
+
+## Ressenti — la caméra est portée par un corps
+
+Le regard n'est pas une caméra sur rail : cinq micro-mouvements sont appliqués **par-dessus**
+la trajectoire du marcheur. Ils ne modifient jamais la position de collision.
+
+| Effet | Réglage | Déclencheur |
+| --- | --- | --- |
+| Balancement du pas | 3,2 cm d'amplitude, 1,75 Hz (×1,55 en course) | indexé sur la **distance parcourue** |
+| Respiration | 7 mm, 0,22 Hz | uniquement à l'arrêt (< 0,15 m/s) |
+| Roulis | 0,9° max | vitesse angulaire du regard |
+| Inclinaison | 0,7° max | accélération / freinage |
+| Lissage du regard | 55 ms de constante | souris |
+
+- **Bascule** : touche `M` (ignorée dans un champ de saisie) coupe ou rétablit le mouvement.
+- **Accessibilité** : si le système demande `prefers-reduced-motion: reduce`, les offsets sont
+  nuls par défaut. La caméra revient alors exactement à `y = sol + 1,65 m`.
+- **Pourquoi la distance et non le temps** : bloqué contre un mur, le marcheur ne balance
+  plus. Un balancement temporel continuerait, ce qui trahit immédiatement la simulation.
+- Bornes : aucun offset ne dépasse **5 cm**, aucune inclinaison **2°**. Vérifié sous Node :
+  3,18 cm de balancement, 7 mm au repos, offsets nuls quand le mouvement est coupé.

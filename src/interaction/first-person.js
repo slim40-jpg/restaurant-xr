@@ -6,45 +6,14 @@
  * @role    Traduire souris et clavier en intentions, puis déléguer le mouvement à walk-math.
  */
 
+import { actionFor, isEditableTarget } from './move-keys.js';
+import { createViewMotion } from './view-motion.js';
 import { createWalkerState, stepWalker, WALK_DEFAULTS } from './walk-math.js';
 
 /** Sensibilité de la souris, en radians par pixel parcouru. */
 const LOOK_SENSITIVITY = 0.0022;
 /** Pas de temps maximal : un onglet en arrière-plan produirait un saut de plusieurs mètres. */
 const MAX_STEP_SECONDS = 0.05;
-
-/** Vrai si la cible est un champ de saisie : le panneau de préférences en contient plusieurs. */
-function isEditableTarget(target) {
-  if (!target || typeof target !== 'object') return false;
-  if (target.isContentEditable === true) return true;
-  if (typeof target.closest !== 'function') return false;
-  return target.closest('input, select, textarea, [contenteditable]') !== null;
-}
-
-/** Touches de déplacement ; `event.key` couvre AZERTY (`z`, `q`) et QWERTY (`w`, `a`). */
-const KEY_ACTIONS = {
-  w: 'forward',
-  z: 'forward',
-  arrowup: 'forward',
-  s: 'back',
-  arrowdown: 'back',
-  a: 'left',
-  q: 'left',
-  arrowleft: 'left',
-  d: 'right',
-  arrowright: 'right',
-};
-
-/**
- * Traduit une touche en intention de déplacement.
- * @param {KeyboardEvent} event Événement clavier.
- * @returns {'forward'|'back'|'left'|'right'|'run'|null} Intention reconnue, ou `null`.
- */
-function actionFor(event) {
-  if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') return 'run';
-  const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
-  return key === 'shift' ? 'run' : (KEY_ACTIONS[key] ?? null);
-}
 
 /**
  * Crée le mode marche : la caméra se déplace comme les yeux du visiteur. Ce module ne touche
@@ -75,12 +44,18 @@ export function createFirstPerson({
   let pendingYaw = 0;
   let pendingPitch = 0;
   let lockWarned = false;
+  const motion = createViewMotion();
+  let travelled = 0;
+  let previousSpeed = 0;
 
-  /** Applique l'état du marcheur à la caméra (yeux à 1,65 m, orientation YXZ). */
-  function syncCamera() {
+  /** Applique l'état du marcheur et les micro-mouvements à la caméra. */
+  function syncCamera(view = null) {
     camera.rotation.order = 'YXZ';
-    camera.position.set(state.x, state.y + WALK_DEFAULTS.eyeHeight, state.z);
-    camera.rotation.set(state.pitch, state.yaw, 0);
+    const offsetY = view ? view.offsetY : 0;
+    const roll = view ? view.roll : 0;
+    const pitch = view ? view.pitchOffset : 0;
+    camera.position.set(state.x, state.y + WALK_DEFAULTS.eyeHeight + offsetY, state.z);
+    camera.rotation.set(state.pitch + pitch, state.yaw, roll);
   }
   /** Replace l'état au point d'apparition et, si actif, la caméra. */
   function placeAt(x, z) {
@@ -148,11 +123,30 @@ export function createFirstPerson({
     pendingYaw = 0;
     pendingPitch = 0;
     stepWalker(state, input, step, world);
-    syncCamera();
+
+    // Mesures du frame : elles alimentent les micro-mouvements (pas, roulis, inclinaison).
+    const speed = Math.hypot(state.vx, state.vz);
+    travelled += speed * step;
+    const acceleration = (speed - previousSpeed) / step;
+    previousSpeed = speed;
+    const view = motion.update(step, {
+      speed,
+      distance: travelled,
+      yawVelocity: input.dYaw / step,
+      acceleration,
+    });
+    syncCamera(view);
   }
   /** Enregistre une touche pressée ; les flèches ne doivent pas faire défiler la page. */
   function handleKeyDown(event) {
     if (!enabled || isEditableTarget(event.target)) return;
+
+    // Bascule des micro-mouvements (pas, respiration, roulis) : utile pour comparer.
+    if (typeof event.key === 'string' && event.key.toLowerCase() === 'm') {
+      motion.setEnabled(!motion.isEnabled());
+      return;
+    }
+
     const action = actionFor(event);
     if (action === null) return;
     if (action === 'run') keys.run = true;
