@@ -42,6 +42,14 @@ export const WALK_COLLIDERS = [
   box(-HALF_W, DOOR.x - DOOR.width / 2, HALF_D - 0.1, HALF_D + 0.1, 0, HEIGHT, 'wall'),
   box(DOOR.x + DOOR.width / 2, HALF_W, HALF_D - 0.1, HALF_D + 0.1, 0, HEIGHT, 'wall'),
 
+  // Angles arrondis : quatre volumes approchent la courbure du bâti.
+  ...[
+    [-HALF_W, -HALF_D],
+    [HALF_W - 1.5, -HALF_D],
+    [HALF_W - 1.5, HALF_D - 1.5],
+    [-HALF_W, HALF_D - 1.5],
+  ].map(([x, z]) => box(x, x + 1.5, z, z + 1.5, 0, HEIGHT, 'rounded-corner')),
+
   // Colonnes de fonte alignées sur les murs.
   ...[-4.4, 0, 4.4].flatMap((z) =>
     [-HALF_W + 0.45, HALF_W - 0.45].map((x) => box(x - 0.2, x + 0.2, z - 0.2, z + 0.2, 0, HEIGHT, 'column'))

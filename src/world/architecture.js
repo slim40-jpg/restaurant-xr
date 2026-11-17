@@ -8,7 +8,8 @@
 
 import * as THREE from 'three/webgpu';
 
-import { PALETTE, ROOM_LAYOUT } from './layout.js';
+import { addArch, addArchedOpening, addRoundedRoom } from './arcature.js';
+import { PALETTE, ROOM_ANCHORS, ROOM_LAYOUT } from './layout.js';
 import { createVestibule } from './vestibule.js';
 
 const { WIDTH, DEPTH, HEIGHT } = ROOM_LAYOUT;
@@ -159,6 +160,18 @@ export function createArchitecture() {
   const architecture = new THREE.Group();
   architecture.name = 'architecture';
   buildWalls(architecture);
+
+  // Casser le parallélépipède : angles courbes, arcades du fond et cintre de la porte.
+  addRoundedRoom(architecture, { halfWidth: HALF_W, halfDepth: HALF_D, height: HEIGHT, radius: 2.2 });
+  addArchedOpening(architecture, {
+    x: ROOM_ANCHORS.entrance.x,
+    z: HALF_D - 0.04,
+    width: ROOM_ANCHORS.entrance.width,
+    height: ROOM_ANCHORS.entrance.height,
+  });
+  [-5.5, 5.5].forEach((x) => {
+    addArch(architecture, { x, y: 4.35, z: -HALF_D + 0.2, span: 3.2, depth: 0.22 });
+  });
   buildVaults(architecture);
   buildColumnsAndLights(architecture);
   buildRoof(architecture);
