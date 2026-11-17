@@ -63,9 +63,12 @@ export function enablePointerSelection({ domElement, camera, select }) {
     }
 
     // Conversion pixels → NDC via le rectangle réel du canvas (robuste au CSS et au DPR).
+    // Sous pointer lock, le curseur est figé : le clic vise le centre de l'écran,
+    // matérialisé par le réticule. Sinon on convertit la position réelle de la souris.
+    const locked = typeof document !== 'undefined' && document.pointerLockElement === domElement;
     const rect = domElement.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    const x = locked ? 0 : ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = locked ? 0 : -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     raycaster.setFromCamera({ x, y }, camera);
     select(raycaster.ray);

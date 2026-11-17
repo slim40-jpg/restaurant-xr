@@ -120,7 +120,7 @@ const walkMode = createWalkMode({
   colliders: WALK_COLLIDERS,
   surfaceHeightAt,
   levels: LEVELS,
-  start: { x: 0, z: 5.4 },
+  start: { x: 4.6, z: 12.6 },
 });
 const viewToggle = createViewToggle({
   container: document.getElementById('view-toggle') ?? document.body,

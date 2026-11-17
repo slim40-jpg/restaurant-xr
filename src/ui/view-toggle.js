@@ -83,12 +83,34 @@ export function createViewToggle({ container, initial = 'orbit', onChange } = {}
    * @param {string} mode Mode à afficher comme actif.
    * @returns {void}
    */
+  // Réticule : matérialise le point visé quand le curseur est capturé par le pointer lock.
+  const crosshair = document.createElement('div');
+  crosshair.setAttribute('aria-hidden', 'true');
+  Object.assign(crosshair.style, {
+    position: 'fixed',
+    left: '50%',
+    top: '50%',
+    width: '12px',
+    height: '12px',
+    marginLeft: '-6px',
+    marginTop: '-6px',
+    borderRadius: '50%',
+    border: '1px solid rgba(255, 255, 255, 0.9)',
+    boxShadow: '0 0 6px rgba(0, 0, 0, 0.9)',
+    pointerEvents: 'none',
+    zIndex: '130',
+    display: 'none',
+  });
+  document.body.appendChild(crosshair);
+
   function setMode(mode) {
     current = normalizeMode(mode);
 
     for (const button of buttons) {
       button.setAttribute('aria-pressed', String(button.dataset.mode === current));
     }
+
+    crosshair.style.display = current === 'walk' ? 'block' : 'none';
   }
 
   /**
