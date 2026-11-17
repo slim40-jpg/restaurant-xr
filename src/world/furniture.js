@@ -1,8 +1,8 @@
 /**
  * @file    src/world/furniture.js
- * @brief   Fabrique des meubles du restaurant : chaises, tables et marqueur d'état.
+ * @brief   Mobilier contemporain : tables terrazzo à chant laiton, chaises coque et piètement acier.
  * @author  Slim Selmi — Développement 3D / WebXR
- * @date    2026-11-11
+ * @date    2026-11-17
  * @role    Construit chaque table à partir d'une entrée du plan et attache les données de sélection.
  */
 
@@ -10,24 +10,32 @@ import * as THREE from 'three';
 
 import { STATUS_COLORS, TABLE_STATUS } from '../config/constants.js';
 import { PALETTE } from './layout.js';
+import { ringChairs, sideChairs } from './seat-layout.js';
 
-/** Matériaux partagés par tout le mobilier (factorisation par matériau). */
+/** Matériaux partagés : une instance par matière, jamais par objet. */
 const MAT = {
-  top: new THREE.MeshStandardMaterial({ color: PALETTE.WOOD_LIGHT, roughness: 0.55 }),
-  pedestal: new THREE.MeshStandardMaterial({ color: PALETTE.CHARCOAL, roughness: 0.4, metalness: 0.6 }),
-  frame: new THREE.MeshStandardMaterial({ color: PALETTE.WOOD, roughness: 0.75 }),
-  seat: new THREE.MeshStandardMaterial({ color: PALETTE.WINE, roughness: 0.85 }),
-  cloth: new THREE.MeshStandardMaterial({ color: PALETTE.CREAM, roughness: 0.9 }),
+  top: new THREE.MeshStandardMaterial({ color: 0xe7e3d8, roughness: 0.32, metalness: 0.04 }),
+  rim: new THREE.MeshStandardMaterial({ color: PALETTE.BRASS, roughness: 0.3, metalness: 0.9 }),
+  steel: new THREE.MeshStandardMaterial({ color: 0x2b2b2e, roughness: 0.38, metalness: 0.72 }),
+  seat: new THREE.MeshStandardMaterial({ color: 0x6b2c2a, roughness: 0.78 }),
+  shell: new THREE.MeshStandardMaterial({ color: 0x3a3a3e, roughness: 0.42, metalness: 0.55 }),
 };
 
-/** Géométries partagées (assise, dossier, pieds) réutilisées par toutes les chaises. */
+/** Géométries partagées par tout le mobilier. */
 const GEO = {
-  seat: new THREE.BoxGeometry(0.4, 0.06, 0.4),
-  back: new THREE.BoxGeometry(0.4, 0.42, 0.06),
-  leg: new THREE.CylinderGeometry(0.022, 0.022, 0.45, 8),
+  seat: new THREE.BoxGeometry(0.42, 0.055, 0.42),
+  back: new THREE.BoxGeometry(0.42, 0.3, 0.035),
+  leg: new THREE.CylinderGeometry(0.016, 0.016, 0.44, 8),
+  pedestal: new THREE.CylinderGeometry(0.045, 0.075, 0.7, 18),
+  base: new THREE.CylinderGeometry(0.27, 0.27, 0.022, 24),
+  rim: new THREE.TorusGeometry(1, 0.012, 6, 36),
 };
 
-/** Rayon du plateau rond selon la capacité. */
+/**
+ * Rayon du plateau rond selon la capacité (contrat inchangé : la vaisselle s'y aligne).
+ * @param {number} capacity Nombre de couverts.
+ * @returns {number} Rayon en mètres.
+ */
 function roundRadius(capacity) {
   if (capacity >= 6) return 0.75;
   if (capacity >= 4) return 0.55;
@@ -35,121 +43,108 @@ function roundRadius(capacity) {
 }
 
 /**
- * Crée une chaise simplifiée : assise capitonnée, dossier et quatre pieds.
+ * Crée une chaise contemporaine : coque fine, assise capitonnée, quatre pieds acier.
  * @returns {THREE.Group} Chaise positionnée à l'origine, orientée vers +Z.
  */
 export function createChair() {
   const chair = new THREE.Group();
-  const seat = new THREE.Mesh(GEO.seat, MAT.seat);
+
+  const seat = new THREE.Mesh(GEO.seat, MAT.shell);
   seat.position.y = 0.45;
   seat.castShadow = true;
   chair.add(seat);
 
-  const back = new THREE.Mesh(GEO.back, MAT.frame);
-  back.position.set(0, 0.68, -0.17);
+  const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.035, 0.38), MAT.seat);
+  cushion.position.y = 0.482;
+  chair.add(cushion);
+
+  // Dossier légèrement incliné : c'est ce qui distingue une coque d'une caisse.
+  const back = new THREE.Mesh(GEO.back, MAT.shell);
+  back.position.set(0, 0.7, -0.19);
+  back.rotation.x = -0.12;
   back.castShadow = true;
   chair.add(back);
 
+  // Montants du dossier, fins, pour lier la coque au piètement.
+  [-0.19, 0.19].forEach((px) => {
+    const riser = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.3, 6), MAT.steel);
+    riser.position.set(px, 0.58, -0.18);
+    riser.rotation.x = -0.12;
+    chair.add(riser);
+  });
+
   [
-    [-0.14, -0.14],
-    [0.14, -0.14],
-    [-0.14, 0.14],
-    [0.14, 0.14],
+    [-0.16, -0.16],
+    [0.16, -0.16],
+    [-0.16, 0.16],
+    [0.16, 0.16],
   ].forEach(([px, pz]) => {
-    const leg = new THREE.Mesh(GEO.leg, MAT.frame);
-    leg.position.set(px, 0.225, pz);
+    const leg = new THREE.Mesh(GEO.leg, MAT.steel);
+    leg.position.set(px, 0.22, pz);
     chair.add(leg);
   });
 
   return chair;
 }
 
-/** Dispose `count` chaises régulièrement autour d'un plateau rond, tournées vers le centre. */
-function ringChairs(group, count, ringRadius) {
-  const offset = Math.PI / count;
-  for (let i = 0; i < count; i += 1) {
-    const angle = offset + (i / count) * Math.PI * 2;
-    const chair = createChair();
-    chair.position.set(Math.cos(angle) * ringRadius, 0, Math.sin(angle) * ringRadius);
-    chair.rotation.y = Math.atan2(-Math.cos(angle), -Math.sin(angle));
-    group.add(chair);
-  }
-}
-
-/** Dispose `count` chaises sur les deux grands côtés d'un plateau rectangulaire. */
-function sideChairs(group, count, halfLength, halfBreadth) {
-  const perSide = Math.max(1, Math.ceil(count / 2));
-  const spacing = perSide > 1 ? (halfLength * 2 - 0.4) / (perSide - 1) : 0;
-  let placed = 0;
-
-  for (let i = 0; i < perSide && placed < count; i += 1) {
-    const x = perSide > 1 ? -halfLength + 0.2 + i * spacing : 0;
-    const front = createChair();
-    front.position.set(x, 0, halfBreadth + 0.36);
-    front.rotation.y = Math.PI;
-    group.add(front);
-    placed += 1;
-
-    if (placed < count) {
-      const rear = createChair();
-      rear.position.set(x, 0, -(halfBreadth + 0.36));
-      group.add(rear);
-      placed += 1;
-    }
-  }
-}
-
 /**
- * Crée une table complète à partir d'une entrée du plan.
+ * Crée une table moderne à partir d'une entrée du plan.
+ *
+ * Plateau terrazzo de 4 cm à chant laiton, piètement central acier effilé, base discrète.
+ * Le marqueur d'état et le contrat `userData` sont conservés à l'identique.
+ *
  * @param {{ id: string, x: number, z: number, rotation: number, capacity: number,
  *   shape: string, zone: string, status: string, features: string[] }} entry Entrée du plan.
  * @returns {THREE.Group} Table enrichie de `userData` (isTable, status, id, marker, …).
  */
 export function createTable(entry) {
-  const { capacity, shape, zone, status } = entry;
+  const { capacity, shape, status } = entry;
   const group = new THREE.Group();
   const isRect = shape === 'rect';
   const halfLength = isRect ? (capacity >= 6 ? 1.0 : 0.8) : roundRadius(capacity);
   const halfBreadth = isRect ? 0.45 : halfLength;
 
   const top = isRect
-    ? new THREE.Mesh(new THREE.BoxGeometry(halfLength * 2, 0.06, halfBreadth * 2), MAT.top)
-    : new THREE.Mesh(new THREE.CylinderGeometry(halfLength, halfLength, 0.06, 32), MAT.top);
+    ? new THREE.Mesh(new THREE.BoxGeometry(halfLength * 2, 0.04, halfBreadth * 2), MAT.top)
+    : new THREE.Mesh(new THREE.CylinderGeometry(halfLength, halfLength, 0.04, 40), MAT.top);
   top.position.y = 0.75;
   top.castShadow = true;
   top.receiveShadow = true;
   group.add(top);
 
   if (isRect) {
-    const leg = new THREE.CylinderGeometry(0.03, 0.03, 0.72, 8);
-    [
-      [-0.75, -0.3],
-      [0.75, -0.3],
-      [-0.75, 0.3],
-      [0.75, 0.3],
-    ].forEach(([px, pz]) => {
-      const post = new THREE.Mesh(leg, MAT.pedestal);
-      post.position.set(px, 0.36, pz);
-      post.castShadow = true;
-      group.add(post);
+    // Chant laiton sur les deux longs côtés.
+    [-1, 1].forEach((side) => {
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(halfLength * 2, 0.012, 0.014), MAT.rim);
+      strip.position.set(0, 0.75, side * (halfBreadth - 0.005));
+      group.add(strip);
+    });
+    [-0.75, 0.75].forEach((px) => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.73, 0.05), MAT.steel);
+      leg.position.set(px, 0.365, 0);
+      leg.castShadow = true;
+      group.add(leg);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.02, halfBreadth * 2 - 0.08), MAT.steel);
+      foot.position.set(px, 0.01, 0);
+      group.add(foot);
     });
   } else {
-    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 0.72, 16), MAT.pedestal);
+    // Chant laiton : anneau fin au bord du plateau.
+    const rim = new THREE.Mesh(GEO.rim, MAT.rim);
+    rim.scale.setScalar(halfLength);
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = 0.75;
+    group.add(rim);
+
+    const pedestal = new THREE.Mesh(GEO.pedestal, MAT.steel);
     pedestal.position.y = 0.36;
     pedestal.castShadow = true;
     group.add(pedestal);
 
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.04, 20), MAT.pedestal);
-    base.position.y = 0.02;
+    const base = new THREE.Mesh(GEO.base, MAT.steel);
+    base.position.y = 0.011;
+    base.castShadow = true;
     group.add(base);
-  }
-
-  if (zone === 'banquette' || zone === 'corner') {
-    const cloth = isRect
-      ? new THREE.Mesh(new THREE.BoxGeometry(halfLength * 2 + 0.12, 0.02, halfBreadth * 2 + 0.12), MAT.cloth)
-      : new THREE.Mesh(new THREE.CylinderGeometry(halfLength + 0.06, halfLength + 0.06, 0.02, 32), MAT.cloth);
-    cloth.position.y = 0.79;
-    group.add(cloth);
   }
 
   const color = STATUS_COLORS[status] ?? STATUS_COLORS[TABLE_STATUS.UNAVAILABLE];
@@ -158,11 +153,8 @@ export function createTable(entry) {
   marker.position.y = 0.98;
   group.add(marker);
 
-  if (isRect) {
-    sideChairs(group, capacity, halfLength, halfBreadth);
-  } else {
-    ringChairs(group, capacity, halfLength + 0.38);
-  }
+  if (isRect) sideChairs(group, capacity, halfLength, halfBreadth, createChair);
+  else ringChairs(group, capacity, halfLength + 0.38, createChair);
 
   group.position.set(entry.x, 0, entry.z);
   group.rotation.y = entry.rotation;
