@@ -38,7 +38,7 @@ export const PALETTE = Object.freeze({
 export const ROOM_LAYOUT = Object.freeze({
   WIDTH: 22,
   DEPTH: 14,
-  HEIGHT: 6.3,
+  HEIGHT: 8.0,
   GROUND_HEIGHT: 3.0,
   SLAB: 0.25,
   MEZZANINE_Y: 3.25,
@@ -82,7 +82,7 @@ export const STAIR = Object.freeze({
 
 const HALF_W = ROOM_LAYOUT.WIDTH / 2;
 const HALF_D = ROOM_LAYOUT.DEPTH / 2;
-const { WINDOW, CORNER, CENTER, BAR, BANQUETTE, TERRACE, MEZZANINE } = ZONES;
+const { WINDOW, CORNER, CENTER, BAR, BANQUETTE, TERRACE } = ZONES;
 const { VIEW, QUIET, PRIVATE, NEAR_WC, NEAR_ENTRANCE } = TABLE_FEATURES;
 
 /** Fabrique une entrée de table gelée à partir d'une ligne compacte du plan. */
@@ -127,10 +127,6 @@ export const TABLE_CATALOGUE = Object.freeze([
   table('T18', LEVELS.TERRACE, TERRACE, 4, 'round', -0.6, 9.4, 0, [VIEW], 'available'),
   table('T19', LEVELS.TERRACE, TERRACE, 4, 'round', 4.2, 10.2, Math.PI / 4, [NEAR_ENTRANCE], 'available'),
   table('T20', LEVELS.TERRACE, TERRACE, 6, 'rect', -2.8, 13.8, 0, [VIEW, PRIVATE], 'reserved'),
-  table('T21', LEVELS.MEZZANINE, MEZZANINE, 4, 'round', -9.0, -3.8, Math.PI / 4, [VIEW, QUIET], 'available'),
-  table('T22', LEVELS.MEZZANINE, MEZZANINE, 4, 'round', -4.4, -3.8, 0, [VIEW], 'available'),
-  table('T23', LEVELS.MEZZANINE, MEZZANINE, 4, 'round', 1.0, -3.8, Math.PI / 4, [VIEW], 'available'),
-  table('T24', LEVELS.MEZZANINE, MEZZANINE, 6, 'round', 6.4, -3.4, 0, [PRIVATE, VIEW], 'reserved'),
 ]);
 
 /**

@@ -71,7 +71,7 @@
         const { restaurant, tablesGroup } = buildRestaurant();
         restaurant.updateMatrixWorld(true);
 
-        check('24 tables construites', tablesGroup.children.length === 24, `${tablesGroup.children.length}`);
+        check('20 tables construites', tablesGroup.children.length === 20, `${tablesGroup.children.length}`);
         check(
           'userData.isTable sur chaque table',
           tablesGroup.children.every((t) => t.userData.isTable === true)
@@ -81,8 +81,8 @@
           tablesGroup.children.every((t) => t.userData.marker && t.userData.marker.isMesh)
         );
         check(
-          'identifiants stables T01..T24',
-          new Set(tablesGroup.children.map((t) => t.userData.id)).size === 24 &&
+          'identifiants stables T01..T20',
+          new Set(tablesGroup.children.map((t) => t.userData.id)).size === 20 &&
             tablesGroup.children.every((t) => /^T\d{2}$/.test(t.userData.id)),
           tablesGroup.children.map((t) => t.userData.id).join(',')
         );
@@ -107,9 +107,9 @@
         }, {});
         check(
           'états initiaux conformes',
-          statusCounts.available === 18 &&
+          statusCounts.available === 15 &&
             statusCounts.occupied === 2 &&
-            statusCounts.reserved === 3 &&
+            statusCounts.reserved === 2 &&
             statusCounts.unavailable === 1,
           JSON.stringify(statusCounts)
         );

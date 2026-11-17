@@ -1,86 +1,84 @@
-# Le lieu — plan, niveaux et surfaces praticables
+# Le lieu — une nef barcelonaise
 
 | Champ | Valeur |
 | --- | --- |
-| Emprise bâtiment | 22 × 14 m (x ∈ [−11, 11], z ∈ [−7, 7]) |
-| Hauteur totale | 6,30 m |
-| Rez-de-chaussée | 0 → 3,00 m |
-| Dalle de mezzanine | 3,00 → 3,25 m |
-| Étage (mezzanine) | 3,25 → 6,30 m |
-| Terrasse / jardin | extérieure, z ∈ [7,2 ; 16] |
-| Tables | **24** : 16 au rez-de-chaussée, 4 en mezzanine, 4 en terrasse |
+| Emprise | 22 × 14 m (x ∈ [−11, 11], z ∈ [−7, 7]) |
+| Hauteur sous voûte | **8,00 m** |
+| Structure | **15 voûtes catalanes** surbaissées, 6 colonnes de fonte, 5 verrières zénithales |
+| Tables | **20** : 16 en nef, 4 en terrasse |
+| Entrée | sas sombre, portes en laiton, guirlande, puis la nef claire |
 
----
+## 1. Pourquoi il n'y a plus d'étage
 
-## 1. Niveaux
+La version précédente proposait une mezzanine et un escalier. La recherche sur **El Nacional
+(Barcelona)** montre l'inverse : c'est une **nef industrielle unique de 8 m**, à **15 voûtes
+catalanes** sur colonnes métalliques, éclairée par des **verrières** — aucun étage, aucune
+mezzanine. Une dalle posée dans ce volume se lisait d'ailleurs comme un décor, pas comme de
+l'architecture.
 
-| Niveau (`level`) | Sol | Tables | Accès |
-| --- | --- | --- | --- |
-| `ground` | y = 0 | T01 – T16 | entrée z = +7 |
-| `mezzanine` | y = 3,25 | T21 – T24 | escalier |
-| `terrace` | y = 0 | T17 – T20 | porte d'entrée → jardin |
+La référence retenue : ancien théâtre (1870) devenu tannerie, puis garage, réouvert en 2014
+comme espace gastronomique de 2 600 m². Ce qui identifie le lieu, ce sont **trois rapports** :
 
-Le champ `level` est porté par `userData` de chaque table : il permet de filtrer, de
-compter et, plus tard, de persister une réservation avec son étage.
+1. **8 m de hauteur / 15 travées de voûte** — la silhouette ;
+2. **volume central traversant** avec circulation périphérique ;
+3. **passage d'entrée sombre → nef claire et sonore** — le contraste perceptif.
 
-## 2. Escalier
+## 2. Ce qui est modélisé
 
-| Paramètre | Valeur |
+| Élément | Mise en œuvre |
 | --- | --- |
-| Axe | x = −7,0 (largeur 1,20 m : x ∈ [−7,6 ; −6,4]) |
-| Marches | 14 marches, hauteur 0,232 m, giron 0,30 m |
-| Emprise en Z | de z = −1,0 (haut) à z = +3,2 (bas) |
-| Garde-corps | 1,00 m + main courante |
+| Voûtes | 15 sections de cylindre surbaissé (flèche 0,45 m, portée 1,47 m), nervures de séparation |
+| Colonnes | 6 fûts de fonte Ø 0,30 m contre les murs, socles et chapiteaux |
+| Verrières | 5 zénithales lumineuses au faîte + baies vitrées sur deux niveaux en façade |
+| Vestibule | linteau et montants sombres, deux battants laiton entrouverts, 9 ampoules |
+| Toiture | dalle + acrotère, pour ne jamais voir le ciel à travers la nef |
+| Sol | parquet intérieur, terrasse bois, seuil |
 
-Il débouche sur la mezzanine côté z = −1, entre les tables T09 et T12 : aucune table
-n'occupe son emprise.
+Le décor (mosaïques, comptoirs, vitrines, enseignes) reste à faire : voir §5.
 
 ## 3. Surfaces praticables et collisions
 
-`src/world/walkable.js` est le **contrat** consommé par le mode marche, sans Three.js :
+`src/world/walkable.js` est le contrat consommé par le mode marche, sans Three.js :
 
 ```js
-WALK_SURFACES   // rectangles { minX, maxX, minZ, maxZ, y, level, kind }
-WALK_COLLIDERS  // volumes { minX, maxX, minZ, maxZ, minY, maxY, kind }
-surfaceHeightAt(x, z, level = null) // -> y, ou null hors zone
+WALK_SURFACES   // nef, seuil, terrasse  — toutes à y = 0
+WALK_COLLIDERS  // murs (avec trou de porte), 6 colonnes, bar, banquette, haies, poteaux
+surfaceHeightAt(x, z, level) // -> 0 dans la nef et sur la terrasse, null hors zone
 ```
 
-- **Surfaces** : parquet du rez, dalle de mezzanine, terrasse bois, seuil de porte,
-  et quatre paliers d'escalier (interpolés pour une montée lisse).
-- **Colliders** : murs périmétriques, garde-corps de mezzanine et d'escalier, bar,
-  banquette, borne d'accueil, haies et poteaux de pergola.
-- **Les tables ne sont pas des colliders** : on doit pouvoir passer entre deux tables
-  sans rester bloqué. Conséquence assumée : on peut traverser une chaise.
+- Le paramètre `level` est conservé pour l'interface du mode marche, mais **il n'a plus
+  d'effet** : le lieu n'a qu'un niveau intérieur.
+- Les **tables ne sont pas des colliders** : on doit pouvoir passer entre elles. On peut donc
+  traverser une chaise — compromis assumé.
 
-> `surfaceHeightAt` renvoie par défaut la surface **la plus haute**. Sous la mezzanine,
-> un même (x, z) appartient à deux niveaux : le mode marche fournit donc un filtre qui
-> ne retient une surface que si elle est atteignable depuis les pieds (montée max 0,65 m).
+## 4. Environnement de référence
 
-## 4. Choix esthétiques
-
-- Palette « bistrot le soir » centralisée dans `PALETTE` (`layout.js`) : bois chaud,
-  crème, laiton, bordeaux, vert profond.
-- **Baies vitrées sur deux niveaux** côté x = −11 : la salle est lisible de jour.
-- **Mezzanine** sur la moitié arrière : elle crée un point de vue sur la salle et
-  justifie l'escalier.
-- **Jardin** : terrasse bois, pergola à poutres, guirlandes émissives, haies en bacs.
-  Deux lumières ponctuelles seulement pour tout l'extérieur (budget).
-- Aucune texture externe, aucun `ShaderMaterial` : tout est procédural et compatible
-  WebGPU.
-
-## 5. Budget
-
-| Poste | Estimation |
+| Élément | Source |
 | --- | --- |
-| Architecture (deux niveaux, escalier, garde-corps) | ≈ 6 k triangles |
-| Jardin (terrasse, pergola, haies) | ≈ 5 k triangles |
-| Mobilier, vaisselle, props | ≈ 25 k triangles |
-| **Total** | **≈ 36 k triangles** |
+| 8 m, 15 voûtes, verrières, colonnes | dossier de presse officiel El Nacional, El Periódico |
+| Ancien théâtre (1870) → tannerie → garage → restaurant (2014) | revue officielle El Nacional |
+| 2 600 m², 700 couverts | site officiel |
+| Sol hexagonal en bois à l'entrée, carreaux de Valence en chevrons | ProfesionalHoreca, dossier de presse |
+| Mosaïque hexagonale ivoire/vert (Hisbalit 103-A / 221-A) | Hisbalit |
+| Luminaires (lanternes noires, octogones crème, laiton vieilli) | Dajor |
+| Menu, prix, boissons | cartes officielles 2025–2026 (voir `docs/MENU.md`) |
+
+## 5. Reste à faire — par ordre d'impact
+
+1. **Trois îlots de bar centraux** (marbre clair, piètement bois/fer, rail laiton, tabourets)
+   avec la circulation ovale autour — c'est le deuxième marqueur du lieu.
+2. **Zones différenciées** : braseria (boiseries noyer, banquettes bordeaux, roues suspendues,
+   vitrine de maturation), llotja (carreaux blancs et bleu cobalt, présentoir à poisson sur
+   glace), taperia (mosaïque ivoire/vert, comptoir de tapas).
+3. **Sol hexagonal en bois** dans la zone d'entrée.
+4. **Couche d'éclairage** : lanternes noires au hall, octogones crème, plafonniers laiton,
+   2400–2700 K, ampoules visibles.
+5. **Signalétique** : enseignes émaillées, portes laiton, casiers, cartes imprimées.
+6. **Silhouettes de clients** (densité variable) — un lieu de 700 couverts ne peut pas être vide.
 
 ## 6. Limites connues
 
-- Pas de **personnages** assis aux tables occupées : une table `occupied` se reconnaît
-  à son marqueur, pas à un client.
-- La terrasse n'a pas de ciel propre : `scene.background` est commun aux deux espaces.
-- Pas d'**étage accessible en VR** par téléportation : le mode marche est desktop.
-- Les collisions ne tiennent pas compte des chaises (choix délibéré, voir §3).
+- Aucune **capture de contrôle** : le rendu WebGPU ne produit pas de frame en headless.
+  `tools/preview.html` permet un aperçu WebGL du même monde.
+- Pas de personnages, pas de bruit, pas de foule : la crédibilité repose sur l'architecture.
+- La terrasse reste un ajout personnel, absente de la référence.
