@@ -16,6 +16,7 @@ export default [
         localStorage: 'readonly',
         self: 'readonly',
         ResizeObserver: 'readonly',
+        URL: 'readonly',
         PointerEvent: 'readonly',
         HTMLElement: 'readonly',
       },

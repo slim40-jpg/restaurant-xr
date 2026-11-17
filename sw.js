@@ -6,7 +6,7 @@
  * @role    Rendre l'application installable et utilisable sans réseau (worker classique, non module).
  */
 
-const VERSION = 'restaurant-xr-v1';
+const VERSION = 'restaurant-xr-v2';
 const THREE_VERSION = '0.187.0';
 const CDN_PREFIX = `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/`;
 
@@ -164,6 +164,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.url.startsWith(self.location.origin)) {
-    event.respondWith(staleWhileRevalidate(request));
+    // Modules et pages : RESEAU D'ABORD. Un module JS servi depuis le cache une seule
+    // fois de trop donne l'impression que le code n'a pas change. Les images et les
+    // icones, elles, peuvent rester en stale-while-revalidate.
+    const isCode =
+      request.destination === 'script' || /\.(?:js|mjs|html)$/.test(new URL(request.url).pathname);
+    event.respondWith(isCode ? networkFirst(request) : staleWhileRevalidate(request));
   }
 });
