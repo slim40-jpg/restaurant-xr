@@ -24,6 +24,14 @@ export const PALETTE = Object.freeze({
   STONE: 0xa8a091,
   DECK: 0x8a6543,
   BULB: 0xffca7a,
+  /** Bistrot parisien : zinc du comptoir, cuir oxblood, laque verte, marbre, auvent rouge. */
+  ZINC: 0x9aa0a6,
+  OXBLOOD: 0x5a1a22,
+  BOTTLE_GREEN: 0x1f3a2e,
+  MARBLE: 0xeae6dd,
+  AWNING_RED: 0x8c1f28,
+  IRON: 0x2f3236,
+  RATTAN: 0xc9a26a,
 });
 
 /** Enveloppe du bâtiment, strates de hauteur et contraintes d'implantation, en mètres. */

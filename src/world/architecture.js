@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 
 import { PALETTE, ROOM_ANCHORS, ROOM_LAYOUT, STAIR } from './layout.js';
+import { addFascia, addHandrailCap, addUnderCeiling } from './mezzanine-trim.js';
 
 const { WIDTH, DEPTH, HEIGHT, GROUND_HEIGHT, SLAB, MEZZANINE_Y } = ROOM_LAYOUT;
 const HALF_W = WIDTH / 2;
@@ -186,5 +187,13 @@ export function createArchitecture() {
   buildGuardrails(architecture);
   buildStair(architecture);
   buildRoof(architecture);
+
+  // Finitions qui font lire la dalle comme un étage : fascia moulurée, frise de dents,
+  // plafond à poutres sous la mezzanine et main courante laiton sur le garde-corps.
+  const trim = { minX: -HALF_W + 0.6, maxX: HALF_W - 0.6, openZ: -1 };
+  addFascia(architecture, { ...trim, y: MEZZANINE_Y });
+  addUnderCeiling(architecture, { ...trim, y: MEZZANINE_Y - SLAB - 0.04, minZ: -HALF_D + 0.1 });
+  addHandrailCap(architecture, { ...trim, y: MEZZANINE_Y + RAIL, z: -1 });
+
   return architecture;
 }
