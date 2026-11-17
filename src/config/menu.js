@@ -1,172 +1,195 @@
 /**
  * @file    src/config/menu.js
- * @brief   Données pures du menu de démonstration, sans DOM ni dépendance Three.js.
- * @author  Hazem Bellili — Intégration assets / UI
+ * @brief   Carte du restaurant : tapas, riz et braise, desserts et boissons de Barcelone.
+ * @author  Wassim Hajji — Logique de réservation / tests
  * @date    2026-11-17
- * @role    Fournir les sections, les plats, les prix et les tags affichés par la fiche de table.
- *
- * Menu fictif de démonstration : aucun plat, prix ou provenance ne prétend refléter
- * une carte réelle. Les valeurs servent uniquement à illustrer l'interface.
+ * @role    Fournit les données de la carte, sans DOM ni Three.js.
  */
 
-/** Sections du menu, dans l'ordre d'affichage. */
+// Carte inspirée d'El Nacional (Barcelona), d'après les cartes officielles 2025-2026.
+// Les prix sont ceux relevés sur ces cartes ; il s'agit d'une reconstitution de démonstration,
+// pas d'une carte commerciale. Les prix de bar peuvent dater de cartes plus anciennes.
+
+/** Sections de la carte, dans l'ordre d'affichage. */
 export const MENU_COURSES = Object.freeze([
-  { id: 'entrees', label: 'Entrées' },
-  { id: 'plats', label: 'Plats' },
-  { id: 'desserts', label: 'Desserts' },
-  { id: 'boissons', label: 'Boissons' },
+  { id: 'tapas-frias', label: 'Tapas frías' },
+  { id: 'tapas-calientes', label: 'Tapas calientes' },
+  { id: 'arroz-brasa', label: 'Arroces y brasa' },
+  { id: 'postres', label: 'Postres' },
+  { id: 'bebidas', label: 'Bebidas' },
 ]);
 
-/**
- * Plats du menu fictif. `course` référence toujours un `MENU_COURSES.id`.
- * `tags` sont des clés françaises destinées à l'affichage ou au filtrage futur.
- */
+/** Plats et boissons. `tags` restent en français, pour l'interface. */
 export const MENU_ITEMS = Object.freeze([
+  // --- Tapas froides
   {
-    id: 'salade-mechouia',
-    course: 'entrees',
-    name: 'Salade méchouia',
-    description: 'Poivrons et tomates grillés, thon, œuf dur',
-    price: 8.5,
+    id: 'pan-de-coca',
+    course: 'tapas-frias',
+    name: 'Pan de coca con tomate',
+    description: 'Pain de coca, tomate frotté, huile d’olive, sel de mer',
+    price: 4.5,
+    tags: ['vegetarien'],
+  },
+  {
+    id: 'jamon-iberico',
+    course: 'tapas-frias',
+    name: 'Jamón ibérico de bellota',
+    description: '80 g, coupé à la main au comptoir',
+    price: 16.25,
+    tags: ['signature'],
+  },
+  {
+    id: 'pulpo-gallega',
+    course: 'tapas-frias',
+    name: 'Pulpo a la gallega',
+    description: 'Poulpe, pomme de terre, pimentón, huile d’olive',
+    price: 21.5,
+    tags: ['signature'],
+  },
+  {
+    id: 'boquerones',
+    course: 'tapas-frias',
+    name: 'Boquerones en vinagre',
+    description: 'Anchois marinés au vinaigre, ail et persil',
+    price: 9.75,
+    tags: [],
+  },
+
+  // --- Tapas chaudes
+  {
+    id: 'croquetas',
+    course: 'tapas-calientes',
+    name: 'Croquetas de jamón ibérico',
+    description: 'Béchamel, jambon ibérique, panure croustillante',
+    price: 7.5,
+    tags: [],
+  },
+  {
+    id: 'bravas',
+    course: 'tapas-calientes',
+    name: 'Patatas bravas',
+    description: 'Pommes de terre, sauce brava, ail',
+    price: 7.5,
+    tags: ['vegetarien', 'epice'],
+  },
+  {
+    id: 'bomba',
+    course: 'tapas-calientes',
+    name: 'Bomba de la Barceloneta',
+    description: 'Croquette de pomme de terre, viande, sauce brava et aïoli',
+    price: 7.5,
+    tags: ['signature'],
+  },
+  {
+    id: 'gambas-ajillo',
+    course: 'tapas-calientes',
+    name: 'Gambas al ajillo',
+    description: 'Crevettes sautées à l’ail et au piment, huile d’olive',
+    price: 15.75,
     tags: ['epice'],
   },
+
+  // --- Riz et braise
   {
-    id: 'bruschetta',
-    course: 'entrees',
-    name: 'Bruschetta tomate-basilic',
-    description: 'Pain grillé, tomates confites, basilic frais',
-    price: 9.5,
-    tags: ['vegetarien'],
+    id: 'paella',
+    course: 'arroz-brasa',
+    name: 'Paella de marisco',
+    description: 'Riz, fruits de mer, safran — pour deux',
+    price: 36,
+    tags: ['signature'],
   },
   {
-    id: 'soupe-du-jour',
-    course: 'entrees',
-    name: 'Soupe du jour',
-    description: 'Légumes de saison, croûtons maison',
-    price: 7,
-    tags: ['vegetarien'],
+    id: 'fideua',
+    course: 'arroz-brasa',
+    name: 'Fideuá con alioli',
+    description: 'Vermicelles, fruits de mer, aïoli — par personne, min. 2',
+    price: 26,
+    tags: [],
   },
   {
-    id: 'brik-a-l-oeuf',
-    course: 'entrees',
-    name: "Brik à l'œuf",
-    description: 'Feuille de malsouka, œuf, thon, câpres',
+    id: 'arroz-negro',
+    course: 'arroz-brasa',
+    name: 'Arroz negro de pescado y marisco',
+    description: 'Riz à l’encre de seiche, poisson et fruits de mer — par personne',
+    price: 26.5,
+    tags: ['signature'],
+  },
+  {
+    id: 'entrecot',
+    course: 'arroz-brasa',
+    name: 'Entrecot de ternera',
+    description: 'Entrecôte grillée à la braise, sel de mer',
+    price: 30.5,
+    tags: [],
+  },
+
+  // --- Desserts
+  {
+    id: 'crema-catalana',
+    course: 'postres',
+    name: 'Crema catalana',
+    description: 'Crème catalane, sucre caramélisé à la flamme',
+    price: 7.5,
+    tags: ['signature'],
+  },
+  {
+    id: 'tarta-santiago',
+    course: 'postres',
+    name: 'Tarta de Santiago',
+    description: 'Gâteau aux amandes, croix de sucre glace',
+    price: 6.75,
+    tags: ['sans-gluten'],
+  },
+
+  // --- Boissons
+  {
+    id: 'vermut',
+    course: 'bebidas',
+    name: 'Vermut Yzaguirre',
+    description: 'Rouge ou blanc, olive et zeste d’orange',
     price: 6.5,
     tags: ['signature'],
   },
   {
-    id: 'couscous-poisson',
-    course: 'plats',
-    name: 'Couscous au poisson',
-    description: 'Semoule, dorade, légumes de saison, harissa',
-    price: 26,
-    tags: ['signature', 'epice'],
+    id: 'cava',
+    course: 'bebidas',
+    name: 'Cava brut, au verre',
+    description: 'Penedès, servi frais',
+    price: 7,
+    tags: [],
   },
   {
-    id: 'entrecote',
-    course: 'plats',
-    name: 'Entrecôte grillée',
-    description: "300 g, beurre maître d'hôtel, frites maison",
-    price: 28,
-    tags: ['sans-gluten'],
-  },
-  {
-    id: 'risotto-cepes',
-    course: 'plats',
-    name: 'Risotto aux cèpes',
-    description: 'Riz carnaroli, cèpes, parmesan',
-    price: 21,
-    tags: ['vegetarien'],
-  },
-  {
-    id: 'dorade-grillee',
-    course: 'plats',
-    name: 'Dorade grillée',
-    description: "Filet entier, citron, huile d'olive",
-    price: 24,
-    tags: ['sans-gluten'],
-  },
-  {
-    id: 'poulet-citron-olive',
-    course: 'plats',
-    name: 'Poulet rôti citron-olive',
-    description: 'Demi-poulet, citron confit, olives',
-    price: 19.5,
+    id: 'gin-tonic',
+    course: 'bebidas',
+    name: 'Gin-tonic',
+    description: 'Gin de la maison, tonic, citron — spécialité barcelonaise',
+    price: 10,
     tags: ['signature'],
   },
   {
-    id: 'tarte-fine-pommes',
-    course: 'desserts',
-    name: 'Tarte fine aux pommes',
-    description: 'Pâte feuilletée, pommes caramélisées',
-    price: 8,
-    tags: ['vegetarien'],
-  },
-  {
-    id: 'fondant-chocolat',
-    course: 'desserts',
-    name: 'Fondant au chocolat',
-    description: 'Cœur coulant, crème vanillée',
-    price: 9,
-    tags: ['vegetarien'],
-  },
-  {
-    id: 'salade-oranges',
-    course: 'desserts',
-    name: "Salade d'oranges",
-    description: "Orange, cannelle, fleur d'oranger",
-    price: 7,
-    tags: ['vegetarien', 'sans-gluten'],
-  },
-  {
-    id: 'citronnade-menthe',
-    course: 'boissons',
-    name: 'Citronnade à la menthe',
-    description: 'Citron pressé, menthe fraîche',
-    price: 5,
-    tags: ['vegetarien', 'sans-gluten'],
-  },
-  {
-    id: 'the-menthe',
-    course: 'boissons',
-    name: 'Thé à la menthe',
-    description: 'Thé vert, menthe, pignons',
-    price: 4,
-    tags: ['vegetarien', 'sans-gluten'],
-  },
-  {
-    id: 'vin-rouge',
-    course: 'boissons',
-    name: 'Vin rouge (verre)',
-    description: 'Rouge de Tunisie, 12 cl',
-    price: 9,
-    tags: ['sans-gluten'],
-  },
-  {
-    id: 'eau-minerale',
-    course: 'boissons',
-    name: 'Eau minérale',
-    description: '50 cl, plate ou pétillante',
-    price: 3,
-    tags: ['sans-gluten'],
+    id: 'cana',
+    course: 'bebidas',
+    name: 'Caña Estrella Damm',
+    description: 'Bière pression, 20 cl',
+    price: 3.5,
+    tags: [],
   },
 ]);
 
 /**
- * Formate un prix en dinars avec la virgule décimale française.
- * @param {number} value Montant en dinars.
- * @returns {string} Prix du type `9,50 DT`, ou `—` si le montant n'est pas numérique.
+ * Formate un prix en euros, à la française.
+ * @param {number} value Montant en euros.
+ * @returns {string} Prix du type `7,50 €`.
  */
 export function formatPrice(value) {
-  const amount = Number(value);
-  if (!Number.isFinite(amount)) return '—';
-  return `${amount.toFixed(2).replace('.', ',')} DT`;
+  const safe = Number.isFinite(value) ? value : 0;
+  return `${safe.toFixed(2).replace('.', ',')} €`;
 }
 
 /**
- * Liste les plats d'une section, dans l'ordre de `MENU_ITEMS`.
- * @param {string} courseId Identifiant de section (`entrees`, `plats`, `desserts`, `boissons`).
- * @returns {Array<Object>} Plats dont `course` correspond à `courseId` (vide si inconnu).
+ * Renvoie les plats d'une section, dans l'ordre de déclaration.
+ * @param {string} courseId Identifiant de section (`MENU_COURSES[].id`).
+ * @returns {Array<object>} Plats de la section, éventuellement vide.
  */
 export function itemsByCourse(courseId) {
   return MENU_ITEMS.filter((item) => item.course === courseId);

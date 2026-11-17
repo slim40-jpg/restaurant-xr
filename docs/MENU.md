@@ -1,123 +1,48 @@
-# Menu de démonstration — Restaurant XR
+# La carte — Barcelone
 
-> **Menu fictif de démonstration.** Aucun plat, prix ou provenance ne prétend
-> refléter une carte réelle. Les données servent uniquement à illustrer la fiche
-> de table et ne doivent pas être présentées comme une offre commerciale.
+Carte de démonstration inspirée d'**El Nacional (Barcelona)**, reconstituée à partir des
+cartes officielles 2025–2026. Les prix sont ceux relevés sur ces cartes ; ce n'est pas une
+carte commerciale. Les prix de bar proviennent parfois de cartes plus anciennes.
 
-Source unique : `src/config/menu.js` (`MENU_COURSES`, `MENU_ITEMS`). Aucune donnée
-n'est dupliquée dans le DOM : `src/ui/menu-list.js` lit ces tableaux et
-`formatPrice` produit l'affichage.
+| Section | Plats |
+| --- | --- |
+| **Tapas frías** | Pan de coca con tomate 4,50 € · Jamón ibérico 16,25 € · Pulpo a la gallega 21,50 € · Boquerones en vinagre 9,75 € |
+| **Tapas calientes** | Croquetas de jamón 7,50 € · Patatas bravas 7,50 € · Bomba de la Barceloneta 7,50 € · Gambas al ajillo 15,75 € |
+| **Arroces y brasa** | Paella de marisco 36,00 € · Fideuá con alioli 26,00 € · Arroz negro 26,50 € · Entrecot de ternera 30,50 € |
+| **Postres** | Crema catalana 7,50 € · Tarta de Santiago 6,75 € |
+| **Bebidas** | Vermut Yzaguirre 6,50 € · Cava au verre 7,00 € · Gin-tonic 10,00 € · Caña Estrella Damm 3,50 € |
 
----
-
-## 1. Contenu
-
-16 plats répartis en 4 sections. Prix en dinars tunisiens (DT).
-
-### Entrées (4)
-
-| Plat | Description | Prix |
-| --- | --- | ---: |
-| Salade méchouia | Poivrons et tomates grillés, thon, œuf dur | 8,50 DT |
-| Bruschetta tomate-basilic | Pain grillé, tomates confites, basilic frais | 9,50 DT |
-| Soupe du jour | Légumes de saison, croûtons maison | 7,00 DT |
-| Brik à l'œuf | Feuille de malsouka, œuf, thon, câpres | 6,50 DT |
-
-### Plats (5)
-
-| Plat | Description | Prix |
-| --- | --- | ---: |
-| Couscous au poisson | Semoule, dorade, légumes de saison, harissa | 26,00 DT |
-| Entrecôte grillée | 300 g, beurre maître d'hôtel, frites maison | 28,00 DT |
-| Risotto aux cèpes | Riz carnaroli, cèpes, parmesan | 21,00 DT |
-| Dorade grillée | Filet entier, citron, huile d'olive | 24,00 DT |
-| Poulet rôti citron-olive | Demi-poulet, citron confit, olives | 19,50 DT |
-
-### Desserts (3)
-
-| Plat | Description | Prix |
-| --- | --- | ---: |
-| Tarte fine aux pommes | Pâte feuilletée, pommes caramélisées | 8,00 DT |
-| Fondant au chocolat | Cœur coulant, crème vanillée | 9,00 DT |
-| Salade d'oranges | Orange, cannelle, fleur d'oranger | 7,00 DT |
-
-### Boissons (4)
-
-| Boisson | Description | Prix |
-| --- | --- | ---: |
-| Citronnade à la menthe | Citron pressé, menthe fraîche | 5,00 DT |
-| Thé à la menthe | Thé vert, menthe, pignons | 4,00 DT |
-| Vin rouge (verre) | Rouge de Tunisie, 12 cl | 9,00 DT |
-| Eau minérale | 50 cl, plate ou pétillante | 3,00 DT |
-
-Tags disponibles : `vegetarien`, `sans-gluten`, `epice`, `signature`.
+Fourchette réaliste sur place : **50 à 100 € par personne** selon l'espace et le vin.
 
 ---
 
-## 2. Choix de conception — sélection ≠ réservation
+## Choix de conception
 
-Avant cette évolution, viser une table avec la manette ou la souris la réservait
-immédiatement. Deux problèmes :
+**Sélectionner n'est pas réserver.** Cliquer une table ouvre sa fiche (zone, capacité,
+statut) et la carte. La réservation passe par un bouton explicite, désactivé avec un libellé
+motivé quand la table n'est pas libre. Sans cette séparation, un client réservait en lisant.
 
-1. **Réservation accidentelle.** Regarder la salle suffisait à bloquer une table,
-   sans intention ni confirmation.
-2. **Consultation impossible.** Le client ne pouvait pas voir le menu ni les
-   caractéristiques d'une table avant de s'engager.
+**Les prix sont en euros**, pas en dinars : le lieu simulé est à Barcelone, et un prix
+incohérent avec la ville casse l'illusion plus sûrement qu'une texture manquante.
 
-La séparation est donc explicite :
+**Les libellés de section restent en catalan/espagnol** (`Tapas frías`, `Arroces y brasa`),
+les descriptions en français : c'est ce que fait une carte bilingue de restaurant touristique,
+et cela garde l'interface lisible pour le jury.
 
-- `select(ray)` met à jour le panneau d'état et signale la table visée, sans
-  jamais toucher à `status`. Il peut notifier l'appelant via `onSelect` pour
-  ouvrir la fiche.
-- `reserve(tableOrId)` est la seule fonction qui applique
-  `available → reserved`, recolore le marqueur et confirme sur le panneau. Elle
-  refuse toute autre transition et renvoie `{ ok: false, reason }` sans mutation.
+**La carte est une donnée, pas du code** : `MENU_ITEMS` est un tableau gelé, consommé par
+`ui/menu-list.js`. Un plat s'ajoute en une entrée ; un prix change sur une ligne.
 
-La fiche (`src/ui/table-card.js`) ne modifie rien elle-même : son bouton appelle
-`onReserve(table)` et c'est le service de sélection qui décide. Cette frontière
-garde une seule machine à états, testable sans DOM ni événement XR.
+## Ce qui n'est pas fait
 
----
+- Pas de **photo de plat** (aucune image externe dans le projet).
+- Pas de **filtre allergènes** : `tags` existe (`vegetarien`, `sans-gluten`, `epice`,
+  `signature`) mais n'est pas encore cliquable.
+- Pas de **panier** ni de commande : la fiche sert à choisir une place, pas à commander.
+- Pas de **traduction** catalan/anglais de la carte.
 
-## 3. Ajouter ou modifier un plat
+## Vérifier
 
-**Ajouter un plat** — une entrée dans `MENU_ITEMS` (`src/config/menu.js`) :
-
-```js
-{
-  id: 'pastilla-crevettes',
-  course: 'entrees',
-  name: 'Pastilla aux crevettes',
-  description: 'Feuille croustillante, crevettes, citron confit',
-  price: 11,
-  tags: ['signature'],
-}
+```bash
+npm run verify                     # en-têtes, plan, lint, format
+# puis dans l'application : cliquer une table → la fiche affiche la carte
 ```
-
-Contraintes :
-
-- `id` unique, en `kebab-case` ;
-- `course` doit valoir exactement un `MENU_COURSES.id` (`entrees`, `plats`,
-  `desserts`, `boissons`) — sinon le plat n'apparaît nulle part ;
-- `price` en dinars, nombre (pas de chaîne) ;
-- `tags` optionnel, valeurs françaises ci-dessus.
-
-**Changer un prix** — modifier `price` dans l'entrée concernée. L'affichage
-(`9,50 DT`) est calculé par `formatPrice`, ne jamais écrire le prix formaté à la
-main. Un prix non numérique affiche `—`.
-
-**Ajouter une section** — ajouter `{ id, label }` à `MENU_COURSES` puis utiliser
-cet `id` dans `course`. L'ordre du tableau est l'ordre d'affichage.
-
----
-
-## 4. Ce qui n'est pas fait
-
-- **Pas de photo de plat** : le menu est textuel pour rester léger et lisible en
-  XR ; aucune ressource image n'est chargée.
-- **Pas de filtre allergènes** : les `tags` sont affichés, pas encore combinés à
-  une recherche ni à un avertissement médical.
-- **Pas de panier ni de commande** : la fiche sert à consulter et à réserver une
-  table, pas à passer commande.
-- **Pas de disponibilité par plat** : un plat listé est toujours affiché, quel
-  que soit le service.
