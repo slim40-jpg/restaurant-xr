@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 
 import { createArchitecture } from './architecture.js';
+import { createElNacional } from './elnacional.js';
 import { createEnvironment } from './environment.js';
 import { createTable } from './furniture.js';
 import { createGarden } from './garden.js';
@@ -32,7 +33,7 @@ export function buildRestaurant() {
   environment.add(createArchitecture());
 
   const { garden, tables: terraceTables } = createGarden();
-  restaurant.add(environment, garden, createProps());
+  restaurant.add(environment, garden, createProps(), createElNacional());
 
   const tablesGroup = new THREE.Group();
   TABLE_CATALOGUE.filter((entry) => entry.level !== LEVELS.TERRACE).forEach((entry) => {
