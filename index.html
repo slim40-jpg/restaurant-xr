@@ -49,9 +49,35 @@
         z-index: 100;
         width: min(360px, 34vw);
       }
+      #table-card {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        bottom: 96px;
+        z-index: 120;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        pointer-events: none;
+      }
+      #view-toggle {
+        position: absolute;
+        top: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 110;
+      }
+      #table-card > * {
+        pointer-events: auto;
+      }
       @media (max-width: 720px) {
         #panel {
           width: calc(100vw - 36px);
+        }
+        #table-card {
+          inset: auto 12px 12px 12px;
+          bottom: 12px;
+          top: auto;
         }
       }
     </style>
@@ -60,6 +86,8 @@
     <div id="app"></div>
     <div id="status">Pointez une table et appuyez sur la gâchette</div>
     <div id="panel"></div>
+    <div id="view-toggle"></div>
+    <div id="table-card"></div>
 
     <script type="importmap">
       {

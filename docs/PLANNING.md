@@ -44,7 +44,8 @@ compte donc les **quatre semaines restantes** : `S+1` à `S+4`.
 | W1 | livré | Socle d'ingénierie | « Structurer le code », « dossier /docs », « en-têtes et commentaires », « 5 commits » | `/docs` complet, code modulaire, historique Git structuré |
 | W2 | livré | Modernisation du rendu | « Three.js r160 obsolète, pas de WebGPU » | r187 + `WebGPURenderer` avec repli WebGL2, badge de backend |
 | W3 | S+1 | Produit réaliste | Salle crédible, choix de place | 16 tables sur 5 zones, couverts, moteur de préférences |
-| W4 | S+2 | PWA et téléportation | « Pas de PWA », téléportation (demandée nommément) | Application installable + déplacement au joystick |
+| W4 | S+2 | Le lieu réel | « un vrai restaurant » : jardin, deux étages | Étage + escalier + terrasse, marche à hauteur d'yeux, fiche table et menu |
+| W5 | S+3 | PWA et téléportation | « Pas de PWA » | Application installable + déplacement en VR |
 | W5 | S+3 | Backend (1/2) : persistance | Backend multi-utilisateur (demandé nommément) | Réservations persistées, conflit refusé en `409` |
 | W6 | S+4 | Backend (2/2) : temps réel, CI, release | Backend multi-utilisateur (demandé nommément) | Deux clients synchronisés + CI verte + `v1.0.0` |
 
@@ -297,10 +298,11 @@ create unique index one_active_reservation_per_table
 | --- | --- | --- | --- | --- |
 | W1 | `chore/engineering-baseline` | ✅ terminé | à ouvrir | `/docs` + historique Git |
 | W2 | `feat/three-r187` | ✅ terminé | à ouvrir | badge backend + sélection souris + panneau 3D |
-| W3 | `feat/pwa` | ⬜ | — | installation + hors-ligne |
-| W4 | `feat/teleportation` | ⬜ | — | déplacement en VR + `npm run test` |
-| W5 | `feat/backend-persistence` | ⬜ | — | `409` sur conflit, données persistées |
-| W6 | `feat/realtime-ci` | ⬜ | — | deux clients synchronisés + `v1.0.0` |
+| W3 | `feat/salle-realiste` | ✅ terminé | — | 24 tables, choix de place |
+| W4 | `feat/lieu-reel` | ✅ terminé | à ouvrir | étage + jardin + marche + menu |
+| W5 | `feat/pwa-teleport` | ⬜ | — | installation, hors-ligne, VR |
+| W6 | `feat/backend-persistence` | ⬜ | — | `409` sur conflit, données persistées |
+| W7 | `feat/realtime-ci` | ⬜ | — | deux clients synchronisés + `v1.0.0` |
 
 ---
 

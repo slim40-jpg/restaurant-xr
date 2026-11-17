@@ -18,8 +18,9 @@ Encadrant : **Dr. Ing. Mohamed-Bécha Kaâniche** · Équipe : **Slim Selmi · H
 
 ![Aperçu de l'application](docs/img/w3-salle.png)
 
-> Capture réelle, rendue en navigateur : salle de 16 tables sur 5 zones, baie vitrée,
-> banquette, bar, couverts dressés, panneau de réservation et panneau « Trouver une place ».
+> Capture du jalon W3 (salle unique, 16 tables). Depuis, un **étage**, un **escalier**
+> et un **jardin-terrasse** ont été ajoutés : la capture sera refaite sur une machine
+> dotée d'un GPU, le rendu WebGPU ne fonctionnant pas en environnement headless.
 
 ---
 
@@ -47,9 +48,10 @@ Prochain : W3 (PWA + déploiement).
 | W1 | Socle d'ingénierie | Code modulaire, `/docs`, en-têtes, outillage, historique Git | ✅ |
 | W2 | Rendu moderne | Three.js r187, WebGPU + repli WebGL2, souris, panneau 3D | ✅ |
 | W3 | Produit réaliste | Salle de 16 tables, 5 zones, couverts, choix de place par préférence | ✅ |
-| W4 | PWA + immersion | Manifeste, service worker, hors-ligne, téléportation joystick | 🔄 |
-| W5 | Backend 1/2 | Schéma, API REST, conflits `409` | ⬜ |
-| W6 | Backend 2/2 | Temps réel WebSocket, CI/CD, release `v1.0.0` | ⬜ |
+| W4 | Le lieu | Étage, escalier, jardin-terrasse, marche à hauteur d'yeux, fiche table + menu | ✅ |
+| W5 | PWA + téléportation | Manifeste, service worker, hors-ligne, déplacement en VR | 🔄 |
+| W6 | Backend 1/2 | Schéma, API REST, conflits `409` | ⬜ |
+| W7 | Backend 2/2 | Temps réel WebSocket, CI/CD, release `v1.0.0` | ⬜ |
 
 Détail, critères d'acceptation et risques : [`docs/PLANNING.md`](docs/PLANNING.md).
 
@@ -58,7 +60,11 @@ Détail, critères d'acceptation et risques : [`docs/PLANNING.md`](docs/PLANNING
 | Fonctionnalité | État | Jalon |
 | --- | --- | --- |
 | Salle 3D : baie vitrée, bar, banquettes, coins, cuisine et WC signalés | ✅ | — |
-| **16 tables** de 2, 4 et 6 places réparties en **5 zones** | ✅ | W3 |
+| **16 tables** au rez-de-chaussée, 5 zones | ✅ | W3 |
+| **Étage (mezzanine)** + escalier de 14 marches | ✅ | W4 |
+| **Jardin-terrasse** : pergola, guirlandes, haies, 4 tables | ✅ | W4 |
+| **Marche à hauteur d'yeux** : ZQSD/WASD, souris, escalier | ✅ | W4 |
+| **Table cliquable** : fiche + menu (16 plats) + réservation explicite | ✅ | W4 |
 | **Choix de la place** : près de la fenêtre, coin, banquette, bar, au calme, loin des WC | ✅ | W3 |
 | Recommandation classée des tables selon le nombre de couverts et les préférences | ✅ | W3 |
 | Mise en évidence des places proposées dans la scène | ✅ | W3 |
@@ -234,6 +240,9 @@ Schéma SQL, protocole, gestion de conflit et alternatives écartées :
 | [`docs/technical_specs.md`](docs/technical_specs.md) | Exigences, architecture, modèle de données, machine à états, APIs, dette |
 | [`docs/PLANNING.md`](docs/PLANNING.md) | Jalons W1–W5, critères d'acceptation, risques, choix de backend |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Graphe de modules, flux d'exécution, invariants |
+| [`docs/WORLD.md`](docs/WORLD.md) | Plan du lieu : niveaux, escalier, surfaces praticables, colliders |
+| [`docs/MENU.md`](docs/MENU.md) | Contenu du menu et choix « sélection ≠ réservation » |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Commandes de la marche (AZERTY/QWERTY) et limites |
 | [`docs/MIGRATION_R160_R187.md`](docs/MIGRATION_R160_R187.md) | Migration Three.js, WebGPU, preuves d'exécution |
 | [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md) | Preuve d'avancement semaine par semaine |
 | [`docs/adr/`](docs/adr/) | Décisions d'architecture et alternatives écartées |

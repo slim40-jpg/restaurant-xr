@@ -10,7 +10,8 @@ import { STATUS_ELEMENT_ID } from './config/constants.js';
 import { registerServiceWorker } from './core/pwa.js';
 import { createXRRenderer } from './core/renderer.js';
 import { addLighting, createScene } from './core/scene.js';
-import { bindControlsToXR, createOrbitControls } from './interaction/controls.js';
+import { createOrbitControls, bindControlsToXR } from './interaction/controls.js';
+import { createWalkMode } from './interaction/walk-mode.js';
 import { createHighlighter } from './interaction/highlight.js';
 import { enablePointerSelection } from './interaction/pointer.js';
 import { createSelectionHandler, createSelectionService } from './interaction/selection.js';
@@ -19,7 +20,11 @@ import { createPreferencesPanel } from './ui/preferences.js';
 import { createStatusFanout } from './ui/status-fanout.js';
 import { createStatusPanel } from './ui/status-panel.js';
 import { createWorldStatusPanel } from './ui/status-panel-3d.js';
+import { createTableCard } from './ui/table-card.js';
+import { createViewToggle } from './ui/view-toggle.js';
+import { LEVELS } from './world/layout.js';
 import { buildRestaurant } from './world/restaurant.js';
+import { WALK_COLLIDERS, surfaceHeightAt } from './world/walkable.js';
 import { setupAR } from './xr/ar.js';
 import { setupControllers } from './xr/controllers.js';
 
@@ -57,7 +62,25 @@ const statusPanel = createStatusFanout([
 
 // ========== 3. ENTRÉES : MANETTE, SOURIS, ORBITE ==========
 const { controller } = setupControllers(xrRenderer.getRenderer(), scene);
-const selection = createSelectionService({ tablesGroup, statusPanel });
+
+// Cliquer une table ne réserve plus : cela ouvre sa fiche (caractéristiques + menu).
+// La réservation passe par le bouton explicite de la fiche, pour éviter les gestes accidentels.
+const tableCard = createTableCard({
+  container: document.getElementById('table-card') ?? document.body,
+  onReserve: (table) => {
+    const result = selection.reserve(table);
+    if (result.ok) {
+      preferences.refresh();
+      tableCard.open(table);
+    }
+  },
+});
+
+const selection = createSelectionService({
+  tablesGroup,
+  statusPanel,
+  onSelect: (table) => tableCard.open(table),
+});
 const highlighter = createHighlighter({ tablesGroup });
 
 // Le panneau de préférences doit refléter l'état courant après chaque réservation :
@@ -68,7 +91,11 @@ const preferences = createPreferencesPanel({
   onHighlight: (ids) => highlighter.highlight(ids),
 });
 
-const handleXRSelect = createSelectionHandler({ tablesGroup, statusPanel });
+const handleXRSelect = createSelectionHandler({
+  tablesGroup,
+  statusPanel,
+  onSelect: (table) => tableCard.open(table),
+});
 controller.addEventListener('selectstart', (event) => {
   handleXRSelect(event);
   preferences.refresh();
@@ -84,6 +111,27 @@ enablePointerSelection({
     preferences.refresh();
   },
 });
+
+// ========== 3 bis. MARCHE À HAUTEUR D'YEUX ==========
+const walkMode = createWalkMode({
+  camera,
+  domElement: container,
+  controls,
+  colliders: WALK_COLLIDERS,
+  surfaceHeightAt,
+  levels: LEVELS,
+  start: { x: 0, z: 5.4 },
+});
+const viewToggle = createViewToggle({
+  container: document.getElementById('view-toggle') ?? document.body,
+  initial: 'orbit',
+  // En session immersive, la pose du casque pilote la caméra : la marche doit céder.
+  onChange: (mode) =>
+    viewToggle.setMode(walkMode.setMode(xrRenderer.getRenderer().xr.isPresenting ? 'orbit' : mode)),
+});
+xrRenderer
+  .getRenderer()
+  .xr.addEventListener('sessionstart', () => viewToggle.setMode(walkMode.setMode('orbit')));
 
 const badge = createBackendBadge();
 
@@ -112,7 +160,14 @@ xrRenderer.setAnimationLoop((time = 0, frame = null) => {
   const delta = lastTime === 0 ? 0 : (time - lastTime) / 1000;
   lastTime = time;
 
-  controls.update();
+  // Un seul des deux pilote la caméra : OrbitControls réécrirait la position
+  // calculée par le marcheur à chaque appel de `update()`.
+  if (walkMode.isEnabled()) {
+    walkMode.update(delta);
+  } else {
+    controls.update();
+  }
+
   worldPanel.update(camera);
   worldPanel.object3D.visible = renderer.xr.isPresenting && renderer.xr.getSession()?.mode !== 'immersive-ar';
   ar.update(frame);
