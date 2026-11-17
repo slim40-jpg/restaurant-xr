@@ -20,7 +20,9 @@ const HINT_TEXT = 'Visez le sol ou une table, puis touchez l’écran pour poser
 /** Options réellement lues par `ARButton.createButton` (r187). */
 const SESSION_INIT = {
   requiredFeatures: ['hit-test'],
-  optionalFeatures: ['dom-overlay', 'local-floor'],
+  // `webgpu` est indispensable depuis la suppression du repli : un renderer WebGPU
+  // refuse toute session XR qui ne le négocie pas. Optionnel = ignoré si indisponible.
+  optionalFeatures: ['dom-overlay', 'local-floor', 'webgpu'],
   domOverlay: { root: document.body },
 };
 
