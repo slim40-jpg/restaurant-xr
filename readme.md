@@ -1,235 +1,162 @@
-# 🍽️ Restaurant XR
+# Restaurant XR — El Nacional
 
-**Le plan de salle d'un restaurant, vivant, lisible en VR comme sur le web.**
-
-Application WebXR : la salle est modélisée en 3D, chaque table porte son état réel
-(disponible, occupée, réservée, indisponible), et un client réserve en pointant la
-table — avec une manette VR ou une simple souris. Aucune installation native :
-tout tourne dans le navigateur.
-
-[![Three.js](https://img.shields.io/badge/three.js-r187-black?logo=three.js)](https://threejs.org/)
-[![WebXR](https://img.shields.io/badge/WebXR-immersive--vr-6e40c9)](https://www.w3.org/TR/webxr/)
-[![WebGPU](https://img.shields.io/badge/WebGPU-repli%20WebGL2%20auto-4ade80)](docs/MIGRATION_R160_R187.md)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-18%20assertions-brightgreen)](tests/smoke.html)
+**Un bistrot barcelonais à visiter dans le navigateur : on entre par la rue, on marche dans la nef, on choisit sa place sur le plan, on lit la carte — sur écran ou en réalité virtuelle.**
 
 Projet académique — **Extended Reality (XR)** · SUP'COM · 2026–2027
 Encadrant : **Dr. Ing. Mohamed-Bécha Kaâniche** · Équipe : **Slim Selmi · Hazem Bellili · Wassim Hajji**
 
-![Aperçu de l'application](docs/img/w3-salle.png)
-
-> Capture du jalon W3 (salle unique, 16 tables). Depuis, un **étage**, un **escalier**
-> et un **jardin-terrasse** ont été ajoutés : la capture sera refaite sur une machine
-> dotée d'un GPU, le rendu WebGPU ne fonctionnant pas en environnement headless.
-
----
-
-## Le problème
-
-Un plan de salle papier ou un tableur ne dit pas ce que le client voit. Un menu de
-réservation classique ne dit pas où il sera assis. Les deux vivent dans des outils
-séparés, et le personnel arbitre les conflits de tête.
-
-**Restaurant XR** réunit les deux : une seule scène 3D qui porte l'état réel du
-service, consultable par le client (web ou casque) et par le personnel. L'objectif
-du cours n'est pas la démonstration graphique : c'est de traiter ce plan de salle
-comme un **système** — état partagé, transitions explicites, backends interchangeables,
-comportement vérifiable.
+[![Three.js](https://img.shields.io/badge/three.js-r187-black)](https://threejs.org/)
+[![WebGPU](https://img.shields.io/badge/WebGPU-obligatoire-4ade80)](docs/MIGRATION_R160_R187.md)
+[![PWA](https://img.shields.io/badge/PWA-installable-6e40c9)](docs/PWA.md)
+[![Tests](https://img.shields.io/badge/tests-29%20assertions-brightgreen)](tests/smoke.html)
+[![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 
 ---
 
-## État du projet
+## Le lieu
 
-**Jalon courant : W2 terminé** — rendu moderne et démonstration utilisable.
-Prochain : W3 (PWA + déploiement).
+Une **nef unique de 8 m** éclairée par cinq verrières, couverte de **quinze voûtes catalanes**,
+portée par des **colonnes de fonte** — la structure d'un ancien théâtre devenu tannerie, puis
+garage, réouvert en 2014 comme espace gastronomique. Le plan n'est pas un rectangle : les
+**quatre angles sont arrondis** et deux **arcades** rythment le mur du fond.
 
-| # | Jalon | Thème | État |
-| --- | --- | --- | --- |
-| W1 | Socle d'ingénierie | Code modulaire, `/docs`, en-têtes, outillage, historique Git | ✅ |
-| W2 | Rendu moderne | Three.js r187, WebGPU + repli WebGL2, souris, panneau 3D | ✅ |
-| W3 | Produit réaliste | Salle de 16 tables, 5 zones, couverts, choix de place par préférence | ✅ |
-| W4 | Le lieu | Étage, escalier, jardin-terrasse, marche à hauteur d'yeux, fiche table + menu | ✅ |
-| W5 | PWA + téléportation | Manifeste, service worker, hors-ligne, déplacement en VR | 🔄 |
-| W6 | Backend 1/2 | Schéma, API REST, conflits `409` | ⬜ |
-| W7 | Backend 2/2 | Temps réel WebSocket, CI/CD, release `v1.0.0` | ⬜ |
+```
+        façade sur rue — auvent, enseigne, deux vitrines
+   ┌───────────────────────────────────────────────────┐
+   │  ⌒                                               ⌒ │   ← angles arrondis (r 2,2 m)
+   │   T01 T02 T03 T04 T05                             │   ← baie vitrée (5 tables)
+   │                                                   │
+   │        ▭▭▭▭▭        ▭▭▭▭▭        ▭▭▭▭▭            │   ← 3 îlots de bar (marbre, laiton)
+   │            T12   T13   T14                        │   ← salle (3 tables)
+   │   T06 T07          T10          T11               │   ← coin + banquette (6 tables)
+   │                                                   │
+   │            bar à huîtres · vins · jambon           │
+   └───────────────────────────────────────────────────┘
+     T17  T18  T19  T20  →  terrasse bois, pergola, haies
+```
 
-Détail, critères d'acceptation et risques : [`docs/PLANNING.md`](docs/PLANNING.md).
+| Espace | Contenu |
+| --- | --- |
+| **Nef** | 16 tables sur 5 zones, 3 îlots de bar, bar à huîtres, étagère à vins, jambon ibérique, roues suspendues, vitrine de maturation |
+| **Terrasse** | 4 tables, pergola, guirlandes, haies en bacs |
+| **Façade** | soubassement de pierre, deux vitrines à barreaudage, auvent rouge, enseigne émaillée, lanternes, jardinières |
 
-### Fonctionnalités
+Les sources du lieu et les choix de reconstitution sont documentés dans
+[`docs/WORLD.md`](docs/WORLD.md).
+
+---
+
+## Fonctionnalités
 
 | Fonctionnalité | État | Jalon |
 | --- | --- | --- |
-| Salle 3D : baie vitrée, bar, banquettes, coins, cuisine et WC signalés | ✅ | — |
-| **16 tables** au rez-de-chaussée, 5 zones | ✅ | W3 |
-| **Étage (mezzanine)** + escalier de 14 marches | ✅ | W4 |
-| **Jardin-terrasse** : pergola, guirlandes, haies, 4 tables | ✅ | W4 |
-| **Marche à hauteur d'yeux** : ZQSD/WASD, souris, escalier | ✅ | W4 |
-| **Table cliquable** : fiche + menu (16 plats) + réservation explicite | ✅ | W4 |
-| **Choix de la place** : près de la fenêtre, coin, banquette, bar, au calme, loin des WC | ✅ | W3 |
-| Recommandation classée des tables selon le nombre de couverts et les préférences | ✅ | W3 |
-| Mise en évidence des places proposées dans la scène | ✅ | W3 |
-| Session immersive `immersive-vr` (WebXR) | ✅ | — |
-| Manette VR : modèle 3D, rayon de visée, gâchette | ✅ | — |
-| Sélection d'une table par raycasting | ✅ | — |
-| États de table et marqueurs colorés | ✅ | — |
-| Réservation : transition d'état visible et confirmée | ✅ | — |
-| Three.js r187 + `WebGPURenderer` | ✅ | W2 |
-| Repli WebGL2 automatique, y compris en session XR | ✅ | W2 |
-| Badge de backend à l'écran (preuve visible) | ✅ | W2 |
-| Utilisation sans casque : orbite + clic pour réserver | ✅ | W2 |
-| Panneau d'état 3D lisible **dans** le casque | ✅ | W2 |
-| Installable et hors-ligne (PWA) | 🔄 | W3 |
-| Téléportation au joystick | ⬜ | W4 |
-| Réservations persistées et synchronisées entre clients | ⬜ | W5 |
+| Nef de 8 m : 15 voûtes, 6 colonnes, 5 verrières | ✅ | W4 |
+| Angles arrondis, arcades, porte cintrée | ✅ | W4 |
+| 20 tables (16 nef + 4 terrasse), 5 zones, capacités 2/4/6 | ✅ | W4 |
+| Mobilier contemporain : terrazzo à chant laiton, chaises coque | ✅ | W4 |
+| **Choix de la place** : fenêtre, coin, banquette, bar, au calme, loin des WC | ✅ | W3 |
+| **Fiche de table + carte** (18 plats barcelonais) et réservation explicite | ✅ | W4 |
+| **Marche à hauteur d'yeux** : ZQSD/WASD, souris, balancement, escalier | ✅ | W4 |
+| **Sélection au réticule** pendant la marche | ✅ | W4 |
+| Session immersive VR (`immersive-vr`) | ✅ | W2 |
+| Session AR (`immersive-ar`) : pose sur surface détectée | ✅ | W3 |
+| Rendu **WebGPU obligatoire**, écran de blocage explicite si absent | ✅ | W2 |
+| **PWA installable**, hors-ligne, mise à jour signalée | ✅ | W3 |
+| Backend de réservation et synchronisation multi-utilisateur | ⬜ | W5–W6 |
 
 ---
 
-## Démonstration en 60 secondes
+## Démarrage
 
 ```bash
 git clone https://github.com/slim40-jpg/restaurant-xr.git
 cd restaurant-xr
-npm install
-npm run dev          # python -m http.server 8000
+npm install            # outils de développement uniquement
+python -m http.server 8000
 ```
 
-Ouvrir <http://localhost:8000> :
+Ouvrir **http://localhost:8000**.
 
-1. **Glisser** à la souris → la caméra tourne autour de la salle.
-2. **Cliquer** une table verte → elle passe en *réservée*, le marqueur devient jaune,
-   le panneau au fond de la salle et celui en haut à gauche confirment.
-3. Bas à droite : le badge indique le backend réellement actif, `WebGPU` ou
-   `WebGL 2 · repli`.
-4. **Enter VR** (casque, ou extension *Immersive Web Emulator*) → même scénario à la
-   manette, et le panneau du fond reste lisible dans le casque.
+> **WebGPU est requis.** Sans adaptateur, l'application affiche un écran « WebGPU requis »
+> avec la marche à suivre, au lieu de basculer silencieusement en WebGL. Vérifier avec
+> `chrome://gpu` → `WebGPU: Hardware accelerated`, ou dans la console :
+> `navigator.gpu.requestAdapter().then(console.log)`.
 
-Vérification en une commande : <http://localhost:8000/tests/smoke.html> → 18 assertions.
+`localhost` est obligatoire : c'est le seul contexte (avec HTTPS) où service worker,
+installation PWA et WebXR fonctionnent ensemble.
+
+### Commandes
+
+| Commande | Effet |
+| --- | --- |
+| `npm run verify` | En-têtes + **contrôle du plan** + ESLint + Prettier |
+| `npm run check:headers` | `@file`, `@author`, `@date`, `@role` et ≤ 200 lignes par module |
+| `npm run check:layout` | 20 tables, distances minimales, dégagements, hauteurs praticables |
+| `npm run lint` / `format` | ESLint (flat config) / Prettier |
+
+### Contrôles
+
+| Action | Touche |
+| --- | --- |
+| Marcher | `ZQSD` ou `WASD`, flèches en secours ; `Maj` pour courir |
+| Regarder | Souris (pointer lock, `Échap` pour libérer) |
+| Changer de mode | `V` — Marcher ↔ Orbite |
+| Couper le balancement | `M` (respecte `prefers-reduced-motion`) |
+| Choisir une table | Clic au **réticule** en marchant, ou clic direct en orbite |
+| Réserver | Bouton de la fiche, jamais par un simple clic |
 
 ---
 
 ## Architecture
 
-Le code est découpé en modules à responsabilité unique, avec un graphe de dépendances
-acyclique orienté vers la configuration.
+Découpage en **47 modules** à responsabilité unique, aucune dépendance circulaire, aucun
+fichier au-delà de 200 lignes.
 
-```mermaid
-flowchart LR
-  main["main.js<br/>câblage"] --> renderer["core/renderer<br/>WebGPU + repli"]
-  main --> scene["core/scene<br/>scène + lumière"]
-  main --> world["world/restaurant<br/>décor + 6 tables"]
-  main --> xr["xr/controllers<br/>manette"]
-  main --> input["interaction/*<br/>rayon → état"]
-  main --> ui["ui/*<br/>DOM + panneau 3D"]
-
-  input --> sel["selection<br/>service commun"]
-  input --> ptr["pointer<br/>souris"]
-  input --> ctl["controls<br/>orbite"]
-
-  ui --> fanout["status-fanout"]
-  world --> furniture["furniture"]
-  world --> env["environment"]
-
-  sel --> const["config/constants<br/>source de vérité"]
-  ptr --> const
-  furniture --> const
-  env --> const
+```
+src/
+├── main.js               câblage (199 lignes, aucune règle métier)
+├── config/               constantes, carte du restaurant
+├── core/                 renderer WebGPU, scène, service worker
+├── world/                plan, architecture, voûtes, façade, décor, mobilier, surfaces praticables
+├── xr/                   manette VR, mode AR (hit-test, réticule), portes
+├── interaction/          sélection, souris, orbite, marche, moteur de recommandation
+└── ui/                   fiche table, carte, préférences, panneaux, réticule, écran de blocage
 ```
 
 Trois décisions portent le reste :
 
-1. **Un seul service de sélection, deux sources.** Manette et souris produisent un
-   `THREE.Ray` ; `createSelectionService` applique la règle métier. Ajouter le regard
-   ou le hand-tracking ne touchera pas à la machine à états.
-2. **Un état, plusieurs affichages.** `ui/status-fanout` publie le même message sur le
-   panneau DOM (desktop) et sur un plan texturé ancré dans la salle (VR). C'est ce qui
-   corrige le défaut le plus grave du prototype : un retour utilisateur invisible
-   là où l'application est censée vivre.
-3. **Le backend de rendu est un détail remplaçable.** `core/renderer` expose
-   `getRenderer()` ; `setupWebGLXRFallback` remplace le renderer au moment d'ouvrir
-   une session si le casque n'expose pas `XRGPUBinding`. Aucun autre module ne sait
-   lequel tourne.
+1. **Le plan est une donnée, pas du code.** `world/layout.js` décrit les 20 tables (position,
+   zone, capacité, caractéristiques, niveau) ; `scripts/check-layout.mjs` prouve les
+   distances et échoue si une table empiète. `npm run verify` l'exécute.
+2. **Sélectionner n'est pas réserver.** Le clic ouvre une fiche et la carte ; la transition
+   `available → reserved` n'existe que dans `reserve()`, appelée par un bouton explicite.
+3. **Le backend de rendu est vérifié, pas supposé.** `core/renderer.js` interroge le backend
+   après `init()` et bloque l'application si WebGPU n'est pas actif — le badge affiche
+   toujours le backend réellement utilisé.
 
-Graphe complet, flux d'exécution et invariants : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
-
----
-
-## Ce que ce projet démontre
-
-- **WebXR de bout en bout** — session `immersive-vr`, poses tête/manettes, raycasting
-  depuis un contrôleur, boucle `XRSession.requestAnimationFrame`.
-- **Une migration de rendu maîtrisée** — r160 → r187, `WebGPURenderer`, et le repli
-  officiel `WebGLXRFallback` parce que WebGPU+WebXR reste expérimental en 2026.
-  Preuves et limites : [`docs/MIGRATION_R160_R187.md`](docs/MIGRATION_R160_R187.md).
-- **Une logique métier testable** — la sélection ne dépend pas d'un événement XR :
-  elle prend un rayon. Elle est donc exécutable dans un vrai navigateur, sans casque.
-- **De l'ingénierie vérifiable** — 15 modules ≤ 200 lignes, en-têtes `@file/@author/
-  @date/@role` imposés par un script, ESLint + Prettier bloquants, 18 assertions.
-- **Une gestion de projet lisible** — un jalon = une branche = des commits
-  conventionnels = une preuve archivée dans [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md).
-
----
-
-## Vision produit — à quoi ressemblera la v1.0
-
-L'objectif n'est pas « un décor 3D de plus ». C'est **un plan de salle partagé en
-temps réel**, dont la 3D est l'interface.
-
-| Aujourd'hui (W2) | v1.0 (fin W6) |
-| --- | --- |
-| Un seul onglet, état local | Plusieurs clients, état serveur unique |
-| Réservation simulée | Réservation persistée, annulable, avec conflits gérés |
-| Caméra fixe en VR | Téléportation au joystick, confort validé |
-| Page web | PWA installable, utilisable hors-ligne |
-| Décor procédural | Modèles GLB du restaurant intégrés et optimisés |
-
-**Le moment de démonstration visé** : deux fenêtres côte à côte, une seule table.
-Le premier client réserve — le second reçoit un refus en moins de 500 ms, son
-interface revient en arrière et affiche `TABLE_ALREADY_RESERVED`. C'est ce plan-là
-qui distingue une application d'une démonstration.
-
-```mermaid
-flowchart LR
-  subgraph Clients
-    vr["Casque VR<br/>WebXR"]
-    web["Navigateur<br/>PWA"]
-    admin["Écran salle<br/>(personnel)"]
-  end
-
-  subgraph Serveur
-    api["API REST<br/>GET /tables<br/>POST /reservations"]
-    ws["Diffusion temps réel<br/>table.updated"]
-    db[("PostgreSQL<br/>tables · reservations")]
-  end
-
-  vr --> api
-  web --> api
-  admin --> api
-  api --> db
-  db --> ws
-  ws -.-> vr
-  ws -.-> web
-  ws -.-> admin
-```
-
-Schéma SQL, protocole, gestion de conflit et alternatives écartées :
-[`docs/PLANNING.md`](docs/PLANNING.md) §3 (W5).
+Détail complet : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
 
 ## Qualité
 
-| Commande | Effet |
-| --- | --- |
-| `npm run verify` | En-têtes + ESLint + Prettier — bloquant avant fusion |
-| `npm run check:headers` | Impose `@file`, `@author`, `@date`, `@role` et ≤ 200 lignes |
-| `npm run lint` | ESLint, configuration plate ES2022 |
-| `npm run format` | Prettier sur `src/`, `scripts/`, `*.html` |
-| `npm run dev` | Serveur statique local (port 8000) |
+```bash
+$ npm run verify
+47/47 fichier(s) conforme(s).
+Plan conforme.
+All matched files use Prettier code style!
+(eslint : aucune erreur)
+```
 
-- **Test fonctionnel** — `tests/smoke.html` : 18 assertions dans un vrai navigateur
-  (décor, états initiaux, réservation, panneau 3D, diffusion, clic vs glisser).
-- **Preuves par jalon** — commandes, sorties réelles et points non vérifiés dans
-  [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md). Ce qui n'a pas été testé y est écrit.
+- **29 assertions** dans un vrai navigateur (`tests/smoke.html`) : construction du décor,
+  identifiants stables, niveaux, sélection sans réservation, `reserve()` idempotent,
+  classement déterministe des tables, panneau 3D, clic vs glisser.
+- **Contrôle du plan** exécuté à chaque `verify` : 20 tables, écart minimal entre centres,
+  dégagement des murs, hauteurs praticables.
+- **Logique de marche testée hors navigateur** : collision (arrêt à 0,280 m du mur
+  = rayon du joueur), glissement le long d'un mur, montée d'escalier, écrêtage du tangage.
+- **Preuves par jalon** : commandes, sorties réelles et points non vérifiés dans
+  [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md).
 
 ---
 
@@ -237,59 +164,23 @@ Schéma SQL, protocole, gestion de conflit et alternatives écartées :
 
 | Document | Contenu |
 | --- | --- |
-| [`docs/technical_specs.md`](docs/technical_specs.md) | Exigences, architecture, modèle de données, machine à états, APIs, dette |
-| [`docs/PLANNING.md`](docs/PLANNING.md) | Jalons W1–W5, critères d'acceptation, risques, choix de backend |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Graphe de modules, flux d'exécution, invariants |
-| [`docs/WORLD.md`](docs/WORLD.md) | Plan du lieu : niveaux, escalier, surfaces praticables, colliders |
-| [`docs/MENU.md`](docs/MENU.md) | Contenu du menu et choix « sélection ≠ réservation » |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Commandes de la marche (AZERTY/QWERTY) et limites |
-| [`docs/MIGRATION_R160_R187.md`](docs/MIGRATION_R160_R187.md) | Migration Three.js, WebGPU, preuves d'exécution |
-| [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md) | Preuve d'avancement semaine par semaine |
-| [`docs/adr/`](docs/adr/) | Décisions d'architecture et alternatives écartées |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Branches, commits conventionnels, revues, périmètres |
-| [`ATTRIBUTION.md`](ATTRIBUTION.md) | Origine et licences des ressources 3D |
-
----
-
-## Stack
-
-| Brique | Version | Rôle |
-| --- | --- | --- |
-| Three.js | r187 (`0.187.0`) | `WebGPURenderer`, repli WebGL2, scène et matériaux |
-| WebGPU / WebGL 2 | — | Rendu GPU, bascule automatique selon le matériel |
-| WebXR Device API | — | Session immersive, poses tête et manettes |
-| WebXR Input Sources | — | Modèles de manettes, axes, gâchettes |
-| Canvas 2D + `CanvasTexture` | — | Panneau de statut lisible dans le casque |
-| ES Modules + import map | — | Aucune étape de build |
-| ESLint 9 · Prettier 3 · Node 20+ | — | Qualité et formatage |
-
----
-
-## Structure du dépôt
-
-```
-restaurant-xr/
-├── index.html                  # Page hôte, import map, panneau DOM
-├── src/
-│   ├── main.js                 # Câblage : 70 lignes, aucune règle métier
-│   ├── config/                 # Constantes, plan des tables, libellés
-│   ├── core/                   # Renderer (WebGPU + repli), scène, éclairage
-│   ├── world/                  # Décor, mobilier, composition du restaurant
-│   ├── xr/                     # Manette, bouton VR, rayon de visée
-│   ├── interaction/            # Sélection (manette/souris), orbite
-│   └── ui/                     # Panneaux DOM et 3D, diffusion, badge
-├── docs/                       # Spécifications, planning, ADR, preuves
-├── tests/smoke.html            # 18 assertions navigateur
-├── scripts/                    # Vérificateur d'en-têtes
-├── assets/                     # Modèles 3D (intégration W4)
-└── package.json
-```
+| [`docs/technical_specs.md`](docs/technical_specs.md) | Exigences, modèle de données, machine à états, APIs, dette |
+| [`docs/WORLD.md`](docs/WORLD.md) | Le lieu : niveaux, voûtes, surfaces praticables, sources |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Graphe de modules, flux, invariants |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Commandes et ressenti de la caméra |
+| [`docs/MENU.md`](docs/MENU.md) | Carte barcelonaise et choix de conception |
+| [`docs/PWA.md`](docs/PWA.md) | Installabilité, hors-ligne, audit |
+| [`docs/AR.md`](docs/AR.md) | Mode réalité augmentée et limites |
+| [`docs/MIGRATION_R160_R187.md`](docs/MIGRATION_R160_R187.md) | Migration Three.js et décision WebGPU |
+| [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md) | Journal de preuves par semaine |
+| [`docs/prompts/`](docs/prompts/) | Journal des prompts et des modèles utilisés |
+| [`docs/adr/`](docs/adr/) | Décisions d'architecture |
 
 ---
 
 ## Équipe
 
-| Membre | Rôle | Périmètre de code |
+| Membre | Rôle | Périmètre |
 | --- | --- | --- |
 | **Slim Selmi** | Développement 3D / WebXR | `src/core/**`, `src/world/**`, `src/xr/**` |
 | **Hazem Bellili** | Intégration assets / UI | `src/ui/**`, `assets/**`, styles |
@@ -299,20 +190,18 @@ restaurant-xr/
 
 ## Limites assumées
 
-- **Pas de persistance** : l'état des tables est local à l'onglet (W5).
-- **Pas encore installable** : manifeste et service worker en W3.
-- **Caméra fixe en VR** : téléportation en W4.
-- **Panneau de préférences en DOM uniquement** : il n'est pas encore visible dans le
-  casque ; sa version 3D arrive avec la téléportation en W4.
-- **WebGPU+WebXR expérimental** : le repli WebGL2 prend le relais et le badge
-  l'affiche. La session immersive n'a pas encore été validée sur casque physique.
-- **Licence des modèles Sketchfab** à confirmer avant toute redistribution (DT-08).
-
-Liste priorisée : [`docs/technical_specs.md`](docs/technical_specs.md) §11.
+- **Pas de backend** : l'état des tables est local à l'onglet (W5–W6).
+- **Pas de session validée sur casque** : WebGPU-XR reste expérimental ; le mode VR dépend
+  du navigateur du casque.
+- **AR non testée sur appareil ARCore** : implémentation et repli vérifiés, pose non.
+- **Pas de personnages** : la salle est vide, ce qui trahit encore la maquette.
+- **Captures d'écran non régénérées** : le rendu WebGPU ne produit pas de frame en
+  environnement headless ; `tools/preview.html` permet un aperçu WebGL sur une machine
+  avec GPU.
 
 ---
 
 ## Licence
 
-Code sous **MIT** — voir [`LICENSE`](LICENSE). Les modèles 3D de `assets/` ne sont
-pas couverts par cette licence : voir [`ATTRIBUTION.md`](ATTRIBUTION.md).
+Code sous **MIT** — voir [`LICENSE`](LICENSE). Les modèles 3D de `assets/` ne sont pas
+couverts par cette licence : voir [`ATTRIBUTION.md`](ATTRIBUTION.md).
