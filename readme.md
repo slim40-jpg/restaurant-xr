@@ -15,6 +15,7 @@ Encadrant : **Dr. Ing. Mohamed-Bécha Kaâniche**
 [![PWA](https://img.shields.io/badge/PWA-installable-6e40c9)](docs/PWA.md)
 [![Tests](https://img.shields.io/badge/tests-29%20assertions-brightgreen)](tests/smoke.html)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
+[Démo : entrée → sélection de table → réservation](docs/demo.gif)
 
 ---
 
@@ -31,15 +32,15 @@ Le décor n'est pas inventé : il s'appuie sur une reconstitution documentée d'
 de bar en marbre, mosaïques ivoire et verte. Les sources et les choix sont dans
 [`docs/WORLD.md`](docs/WORLD.md).
 
-| Ce qu'on peut faire | Détail |
-| --- | --- |
-| **Explorer** | marche à hauteur d'yeux (`ZQSD`/`WASD` + souris), balancement du pas, respiration à l'arrêt |
+| Ce qu'on peut faire   | Détail                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Explorer**          | marche à hauteur d'yeux (`ZQSD`/`WASD` + souris), balancement du pas, respiration à l'arrêt          |
 | **Choisir une place** | critères : fenêtre, coin, banquette, bar, au calme, loin des WC ; les tables compatibles s'éclairent |
-| **Consulter** | clic sur une table → fiche (zone, capacité, statut) + **carte barcelonaise** de 18 plats |
-| **Réserver** | bouton explicite dans la fiche, désactivé si la table n'est pas libre |
-| **Entrer en VR** | session `immersive-vr` à la manette, avec panneau d'état lisible dans le casque |
-| **Passer en AR** | `immersive-ar` : le restaurant se pose en maquette sur une surface réelle |
-| **Installer** | PWA installable, utilisable hors-ligne, mise à jour signalée |
+| **Consulter**         | clic sur une table → fiche (zone, capacité, statut) + **carte barcelonaise** de 18 plats             |
+| **Réserver**          | bouton explicite dans la fiche, désactivé si la table n'est pas libre                                |
+| **Entrer en VR**      | session `immersive-vr` à la manette, avec panneau d'état lisible dans le casque                      |
+| **Passer en AR**      | `immersive-ar` : le restaurant se pose en maquette sur une surface réelle                            |
+| **Installer**         | PWA installable, utilisable hors-ligne, mise à jour signalée                                         |
 
 ---
 
@@ -65,22 +66,22 @@ façade : on entre en marchant.
 
 ### Commandes
 
-| Commande | Effet |
-| --- | --- |
-| `npm run verify` | En-têtes + contrôle du plan + ESLint + Prettier |
-| `npm run check:layout` | 20 tables, distances minimales, dégagements, hauteurs praticables |
-| `npm run check:headers` | `@file`, `@author`, `@date`, `@role` et ≤ 200 lignes par module |
-| `npm run lint` / `format` | ESLint (flat config) / Prettier |
+| Commande                  | Effet                                                             |
+| ------------------------- | ----------------------------------------------------------------- |
+| `npm run verify`          | En-têtes + contrôle du plan + ESLint + Prettier                   |
+| `npm run check:layout`    | 20 tables, distances minimales, dégagements, hauteurs praticables |
+| `npm run check:headers`   | `@file`, `@author`, `@date`, `@role` et ≤ 200 lignes par module   |
+| `npm run lint` / `format` | ESLint (flat config) / Prettier                                   |
 
 ### Commandes de jeu
 
-| Action | Touche |
-| --- | --- |
-| Marcher | `ZQSD` ou `WASD`, flèches en secours ; `Maj` pour courir |
-| Regarder | Souris (pointer lock, `Échap` pour libérer) |
-| Changer de mode | `V` — Marcher ↔ Orbite |
-| Couper le balancement | `M` (respecte `prefers-reduced-motion`) |
-| Choisir une table | Clic au **réticule** en marchant, ou clic direct en orbite |
+| Action                | Touche                                                     |
+| --------------------- | ---------------------------------------------------------- |
+| Marcher               | `ZQSD` ou `WASD`, flèches en secours ; `Maj` pour courir   |
+| Regarder              | Souris (pointer lock, `Échap` pour libérer)                |
+| Changer de mode       | `V` — Marcher ↔ Orbite                                     |
+| Couper le balancement | `M` (respecte `prefers-reduced-motion`)                    |
+| Choisir une table     | Clic au **réticule** en marchant, ou clic direct en orbite |
 
 ---
 
@@ -138,19 +139,19 @@ All matched files use Prettier code style!
 
 ## Documentation
 
-| Document | Contenu |
-| --- | --- |
-| [`docs/WORLD.md`](docs/WORLD.md) | Le lieu : nef, voûtes, surfaces praticables, sources |
-| [`docs/technical_specs.md`](docs/technical_specs.md) | Exigences, modèle de données, machine à états, dette |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Graphe de modules, flux, invariants |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Commandes et ressenti de la caméra |
-| [`docs/MENU.md`](docs/MENU.md) | Carte barcelonaise et choix de conception |
-| [`docs/PWA.md`](docs/PWA.md) | Installabilité, hors-ligne, audit |
-| [`docs/AR.md`](docs/AR.md) | Mode réalité augmentée et limites |
-| [`docs/MIGRATION_R160_R187.md`](docs/MIGRATION_R160_R187.md) | Migration Three.js et décision WebGPU |
-| [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md) | Journal de preuves par semaine |
-| [`docs/prompts/`](docs/prompts/) | Journal des prompts et du modèle utilisé |
-| [`docs/adr/`](docs/adr/) | Décisions d'architecture |
+| Document                                                     | Contenu                                              |
+| ------------------------------------------------------------ | ---------------------------------------------------- |
+| [`docs/WORLD.md`](docs/WORLD.md)                             | Le lieu : nef, voûtes, surfaces praticables, sources |
+| [`docs/technical_specs.md`](docs/technical_specs.md)         | Exigences, modèle de données, machine à états, dette |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)               | Graphe de modules, flux, invariants                  |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md)                       | Commandes et ressenti de la caméra                   |
+| [`docs/MENU.md`](docs/MENU.md)                               | Carte barcelonaise et choix de conception            |
+| [`docs/PWA.md`](docs/PWA.md)                                 | Installabilité, hors-ligne, audit                    |
+| [`docs/AR.md`](docs/AR.md)                                   | Mode réalité augmentée et limites                    |
+| [`docs/MIGRATION_R160_R187.md`](docs/MIGRATION_R160_R187.md) | Migration Three.js et décision WebGPU                |
+| [`docs/DEMO_LOG.md`](docs/DEMO_LOG.md)                       | Journal de preuves par semaine                       |
+| [`docs/prompts/`](docs/prompts/)                             | Journal des prompts et du modèle utilisé             |
+| [`docs/adr/`](docs/adr/)                                     | Décisions d'architecture                             |
 
 `tools/preview.html` rend le même monde en WebGL, pour produire des captures sur une machine
 sans WebGPU : `?view=salle|rue|bar|terrasse|nave-large`.
@@ -159,11 +160,11 @@ sans WebGPU : `?view=salle|rue|bar|terrasse|nave-large`.
 
 ## Équipe
 
-| Membre | Rôle | Périmètre |
-| --- | --- | --- |
-| **Slim Selmi** | Développement 3D / WebXR | `src/core/**`, `src/world/**`, `src/xr/**` |
-| **Hazem Bellili** | Intégration assets / UI | `src/ui/**`, `assets/**`, styles |
-| **Wassim Hajji** | Réservation / tests / backend | `src/main.js`, `src/config/**`, `src/interaction/**`, `tests/**` |
+| Membre            | Rôle                          | Périmètre                                                        |
+| ----------------- | ----------------------------- | ---------------------------------------------------------------- |
+| **Slim Selmi**    | Développement 3D / WebXR      | `src/core/**`, `src/world/**`, `src/xr/**`                       |
+| **Hazem Bellili** | Intégration assets / UI       | `src/ui/**`, `assets/**`, styles                                 |
+| **Wassim Hajji**  | Réservation / tests / backend | `src/main.js`, `src/config/**`, `src/interaction/**`, `tests/**` |
 
 ---
 
