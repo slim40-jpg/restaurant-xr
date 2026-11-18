@@ -161,15 +161,6 @@ function buildSigns(group) {
   const wc = makeSign('WC', 1.1, 0.5);
   wc.position.set(WC.x, 2.4, -HALF_D + 0.18);
   group.add(wc);
-
-  const name = makeSign('EL NACIONAL', 4.2, 1.0);
-  name.position.set(DOOR.x, 3.9, HALF_D - 0.2);
-  name.rotation.y = Math.PI;
-  group.add(name);
-
-  const nameBack = makeSign('EL NACIONAL', 4.2, 1.0);
-  nameBack.position.set(DOOR.x, 3.9, HALF_D + 0.2);
-  group.add(nameBack);
 }
 
 /** Plinthes et cimaises : donnent l'échelle du volume. */
