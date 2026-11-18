@@ -4,7 +4,7 @@
 
 ![La nef vue depuis l'entrée](docs/img/nave.png)
 
-<sub>Rendu réel du projet : quinze voûtes catalanes, colonnes de fonte, mosaïque ivoire et verte, îlots de bar en marbre.</sub>
+<sub>Rendu du monde du projet via 	ools/preview.html (aperçu WebGL) : quinze voûtes catalanes, colonnes de fonte, mosaïque ivoire et verte, îlots de bar en marbre.</sub>
 
 Projet académique — **Extended Reality (XR)** · SUP'COM · 2026–2027
 Encadrant : **Dr. Ing. Mohamed-Bécha Kaâniche**
