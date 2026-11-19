@@ -74,20 +74,19 @@ const tableCard = createTableCard({
       tableCard.open(table);
     }
   },
+  onClose: () => walkMode.resume(),
 });
 
 const selection = createSelectionService({
   tablesGroup,
   statusPanel,
   onSelect: (table) => {
-    walkMode.releasePointer();
+    walkMode.suspend();
     tableCard.open(table);
   },
 });
 const highlighter = createHighlighter({ tablesGroup });
 
-// Le panneau de préférences doit refléter l'état courant après chaque réservation :
-// sans ce rafraîchissement, une table réservée resterait proposée.
 const preferences = createPreferencesPanel({
   container: document.getElementById('panel') ?? document.body,
   getTables: () => tablesGroup.children.map((child) => child.userData),

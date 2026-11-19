@@ -89,9 +89,27 @@ export function createWalkMode({
       return 'walk';
     }
 
+    suspended = false;
     walk.disable();
     controls.enabled = true;
     return 'orbit';
+  }
+
+  /** Mode suspendu : la marche est en pause, la caméra reste immobile. */
+  let suspended = false;
+
+  /** Suspend la marche pour laisser l'utilisateur utiliser une fiche, curseur libre. */
+  function suspend() {
+    if (!walk.isEnabled()) return;
+    suspended = true;
+    walk.disable();
+  }
+
+  /** Reprend la marche là où elle s'était arrêtée, et recapture le pointeur. */
+  function resume() {
+    if (!suspended) return;
+    suspended = false;
+    walk.enable();
   }
 
   /**
@@ -108,6 +126,8 @@ export function createWalkMode({
   return {
     isEnabled: () => walk.isEnabled(),
     releasePointer,
+    suspend,
+    resume,
     setMode,
     /**
      * Avance d'une image et mémorise l'altitude des pieds.
