@@ -147,7 +147,7 @@ export const ROOM_ANCHORS = Object.freeze({
   wc: Object.freeze({ x: 6.5, z: -7, width: 0.9, height: 2.05 }),
   kitchen: Object.freeze({ x: 3.5, z: -7, width: 1.8, height: 2.1 }),
   entrance: Object.freeze({ x: 7, z: 7, width: 1.8, height: 2.4 }),
-  hostDesk: Object.freeze({ x: 5.0, z: 5.4 }),
+  hostDesk: Object.freeze({ x: 4.2, z: 6.2 }),
   stairs: Object.freeze({
     minX: STAIR.centreX - STAIR.width / 2,
     maxX: STAIR.centreX + STAIR.width / 2,

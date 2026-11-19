@@ -16,6 +16,7 @@ const LEAF_W = DOOR.width / 2;
 
 /** Matériaux partagés. */
 const MAT = {
+  steel: new THREE.MeshStandardMaterial({ color: 0x24262a, roughness: 0.35, metalness: 0.75 }),
   brass: new THREE.MeshStandardMaterial({ color: PALETTE.BRASS, roughness: 0.3, metalness: 0.9 }),
   brassDark: new THREE.MeshStandardMaterial({ color: 0x8a6f45, roughness: 0.4, metalness: 0.8 }),
   glass: new THREE.MeshStandardMaterial({
@@ -99,10 +100,10 @@ function createLeaf(parent, side, openAngle) {
   const bar = 0.06;
 
   // Cadre du vantail.
-  box(leaf, MAT.brass, width, bar, 0.06, 0, height - bar / 2, 0);
-  box(leaf, MAT.brass, width, bar * 1.6, 0.06, 0, bar * 0.8, 0);
+  box(leaf, MAT.steel, width, bar, 0.06, 0, height - bar / 2, 0);
+  box(leaf, MAT.steel, width, bar * 1.6, 0.06, 0, bar * 0.8, 0);
   [-1, 1].forEach((edge) => {
-    box(leaf, MAT.brass, bar, height, 0.06, (edge * (width - bar)) / 2, height / 2, 0);
+    box(leaf, MAT.steel, bar, height, 0.06, (edge * (width - bar)) / 2, height / 2, 0);
   });
 
   // Vitre en deux carreaux.
@@ -110,13 +111,13 @@ function createLeaf(parent, side, openAngle) {
   glass.castShadow = false;
 
   // Traverse médiane.
-  box(leaf, MAT.brass, width - bar * 2, 0.035, 0.05, 0, 1.35, 0);
+  box(leaf, MAT.steel, width - bar * 2, 0.035, 0.05, 0, 1.35, 0);
 
   // Poignée verticale côté jonction.
   const handleX = side * (width / 2 - 0.09);
-  box(leaf, MAT.brassDark, 0.028, 0.9, 0.028, handleX, 1.15, -0.07);
+  box(leaf, MAT.steelDark, 0.028, 0.9, 0.028, handleX, 1.15, -0.07);
   [-0.38, 0.38].forEach((dy) => {
-    box(leaf, MAT.brassDark, 0.03, 0.03, 0.09, handleX, 1.15 + dy, -0.035);
+    box(leaf, MAT.steelDark, 0.03, 0.03, 0.09, handleX, 1.15 + dy, -0.035);
   });
 
   // Ferme-porte discret au-dessus du vantail.
@@ -141,7 +142,7 @@ export function createVestibule() {
   [-1, 1].forEach((side) => {
     box(
       group,
-      MAT.brass,
+      MAT.steel,
       0.1,
       DOOR.height + 0.16,
       0.26,
@@ -150,7 +151,7 @@ export function createVestibule() {
       Z_BACK
     );
   });
-  box(group, MAT.brass, DOOR.width + 0.34, 0.14, 0.26, DOOR.x, DOOR.height + 0.09, Z_BACK);
+  box(group, MAT.steel, DOOR.width + 0.34, 0.14, 0.26, DOOR.x, DOOR.height + 0.09, Z_BACK);
 
   // Seuil en pierre, légèrement saillant.
   box(group, MAT.stone, DOOR.width + 0.5, 0.05, 0.62, DOOR.x, 0.025, Z_BACK - 0.1);

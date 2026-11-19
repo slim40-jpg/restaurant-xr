@@ -153,10 +153,6 @@ function createAccents(parent) {
   addBox(parent, 1.12, 0.06, 0.66, MAT.brass, x, 1.03, z);
   addBox(parent, 0.34, 0.03, 0.24, MAT.cream, x, 1.07, z - 0.05);
 
-  addMesh(parent, GEO.stoolSeat, MAT.brass, 6.6, 0.02, z + 0.4);
-  addMesh(parent, GEO.stoolLeg, MAT.brass, 6.6, 0.9, z + 0.4);
-  addBox(parent, 0.2, 0.03, 0.03, MAT.brass, 6.6, 1.55, z + 0.4);
-
   addBox(parent, 0.05, 0.9, 0.7, MAT.brass, 10.9, 1.8, 5.4);
   addBox(parent, 0.02, 0.78, 0.58, MAT.charcoal, 10.86, 1.8, 5.4);
   for (let i = 0; i < 4; i += 1) addBox(parent, 0.01, 0.02, 0.4, MAT.cream, 10.84, 1.98 - i * 0.1, 5.4);

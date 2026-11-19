@@ -74,7 +74,22 @@ function box(parent, w, h, d, material, x, y, z) {
 /** Murs périmétriques de 8 m, avec baies sur la façade et trou de porte à l'entrée. */
 function buildWalls(group) {
   box(group, WIDTH, HEIGHT, 0.24, MAT.plaster, 0, HEIGHT / 2, -HALF_D);
-  box(group, WIDTH, HEIGHT, 0.24, MAT.plaster, 0, HEIGHT / 2, HALF_D);
+  // Mur d'entrée percé d'une baie : sans ce trou, la porte se lit comme un mur peint.
+  const door = ROOM_ANCHORS.entrance;
+  const openLeft = door.x - door.width / 2 - 0.1;
+  const openRight = door.x + door.width / 2 + 0.1;
+  box(group, openLeft + HALF_W, HEIGHT, 0.24, MAT.plaster, (-HALF_W + openLeft) / 2, HEIGHT / 2, HALF_D);
+  box(group, HALF_W - openRight, HEIGHT, 0.24, MAT.plaster, (openRight + HALF_W) / 2, HEIGHT / 2, HALF_D);
+  box(
+    group,
+    openRight - openLeft,
+    HEIGHT - door.height - 0.1,
+    0.24,
+    MAT.plaster,
+    door.x,
+    (HEIGHT + door.height + 0.1) / 2,
+    HALF_D
+  );
   box(group, 0.24, HEIGHT, DEPTH, MAT.plaster, HALF_W, HEIGHT / 2, 0);
 
   // Façade vitrée : deux niveaux de baies séparés par un bandeau plein.

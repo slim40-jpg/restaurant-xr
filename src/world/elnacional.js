@@ -178,9 +178,9 @@ export function createElNacional() {
     addBarIsland(group, x, -2.6, 4);
   });
 
-  addOysterBar(group, 7.4, 5.2);
+  addOysterBar(group, -1.8, 4.9);
   addWineShelf(group, 10.85, 5.0);
-  addHamStand(group, 6.4, 4.4);
+  addHamStand(group, -4.6, 4.5);
   addHangingWheels(group, -3.4, -3.0);
   addMaturationCase(group, 10.5, -4.0);
 

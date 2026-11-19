@@ -101,6 +101,13 @@ function buildWalls(group) {
   group.add(east);
   box(group, 0.1, 4.6, DEPTH - 1.2, cream, HALF_W - 0.1, 5.0, 0);
 
+  // Mur d'entrée : soubassement bois de part et d'autre de la baie, sinon il reste nu.
+  const openLeft = DOOR.x - DOOR.width / 2;
+  const openRight = DOOR.x + DOOR.width / 2;
+  box(group, openLeft + HALF_W, 1.1, 0.06, MAT.wood, (-HALF_W + openLeft) / 2, 0.55, HALF_D - 0.14);
+  box(group, HALF_W - openRight, 1.1, 0.06, MAT.wood, (openRight + HALF_W) / 2, 0.55, HALF_D - 0.14);
+  box(group, WIDTH - 0.4, 0.08, 0.05, MAT.brass, 0, 1.14, HALF_D - 0.15);
+
   // Mur ouest : boiserie noyer de 2,4 m, crème au-dessus.
   box(group, 0.08, 2.4, DEPTH - 1.4, MAT.wood, -HALF_W + 0.14, 1.2, 0);
   const woodTop = new THREE.Mesh(new THREE.PlaneGeometry(DEPTH - 1.4, 5.4), cream);
