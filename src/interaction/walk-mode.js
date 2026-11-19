@@ -94,8 +94,20 @@ export function createWalkMode({
     return 'orbit';
   }
 
+  /**
+   * Libère la capture du pointeur pour laisser l'utilisateur cliquer dans une fiche.
+   * @returns {void}
+   */
+  function releasePointer() {
+    if (typeof document === 'undefined') return;
+    if (document.pointerLockElement && typeof document.exitPointerLock === 'function') {
+      document.exitPointerLock();
+    }
+  }
+
   return {
     isEnabled: () => walk.isEnabled(),
+    releasePointer,
     setMode,
     /**
      * Avance d'une image et mémorise l'altitude des pieds.

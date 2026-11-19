@@ -46,6 +46,7 @@ export function createFirstPerson({
   let lockWarned = false;
   const motion = createViewMotion();
   let travelled = 0;
+  let placed = false;
   let previousSpeed = 0;
 
   /** Applique l'état du marcheur et les micro-mouvements à la caméra. */
@@ -95,7 +96,10 @@ export function createFirstPerson({
     if (enabled) return;
     enabled = true;
     keys.forward = keys.back = keys.left = keys.right = keys.run = false;
-    placeAt(start.x ?? 0, start.z ?? 0);
+    if (!placed) {
+      placeAt(start.x ?? 0, start.z ?? 0);
+      placed = true;
+    }
     requestLock();
   }
   /** Quitte le mode marche : relâche le pointer lock et neutralise les touches. */

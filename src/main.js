@@ -79,7 +79,10 @@ const tableCard = createTableCard({
 const selection = createSelectionService({
   tablesGroup,
   statusPanel,
-  onSelect: (table) => tableCard.open(table),
+  onSelect: (table) => {
+    walkMode.releasePointer();
+    tableCard.open(table);
+  },
 });
 const highlighter = createHighlighter({ tablesGroup });
 
@@ -112,7 +115,6 @@ enablePointerSelection({
   },
 });
 
-// ========== 3 bis. MARCHE À HAUTEUR D'YEUX ==========
 const walkMode = createWalkMode({
   camera,
   domElement: container,
