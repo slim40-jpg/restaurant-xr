@@ -103,12 +103,12 @@ src/
 
 Trois décisions portent le reste :
 
-1. **Le plan est une donnée.** `world/layout.js` décrit les 20 tables (position, zone,
+1. **Le plan est une donnée.** `world/layout.mjs` décrit les 20 tables (position, zone,
    capacité, caractéristiques) et `scripts/check-layout.mjs` **prouve** les distances à chaque
    `npm run verify`.
 2. **Sélectionner n'est pas réserver.** Le clic ouvre une fiche ; la transition
    `available → reserved` n'existe que dans `reserve()`, appelée par un bouton.
-3. **Le rendu est vérifié, pas supposé.** `core/renderer.js` interroge le backend après
+3. **Le rendu est vérifié, pas supposé.** `core/renderer.mjs` interroge le backend après
    initialisation et bloque l'application si WebGPU n'est pas actif. Le badge affiche toujours
    le backend réellement utilisé.
 
@@ -164,7 +164,7 @@ sans WebGPU : `?view=salle|rue|bar|terrasse|nave-large`.
 | ----------------- | ----------------------------- | ---------------------------------------------------------------- |
 | **Slim Selmi**    | Développement 3D / WebXR      | `src/core/**`, `src/world/**`, `src/xr/**`                       |
 | **Hazem Bellili** | Intégration assets / UI       | `src/ui/**`, `assets/**`, styles                                 |
-| **Wassim Hajji**  | Réservation / tests / backend | `src/main.js`, `src/config/**`, `src/interaction/**`, `tests/**` |
+| **Wassim Hajji**  | Réservation / tests / backend | `src/main.mjs`, `src/config/**`, `src/interaction/**`, `tests/**` |
 
 ---
 

@@ -9,9 +9,9 @@ const REQUIRED_TAGS = ['@file', '@author', '@date', '@role'];
 const MAX_LINES = 200;
 
 /**
- * Liste récursivement les fichiers .js d'un dossier.
+ * Liste récursivement les fichiers .mjs d'un dossier.
  * @param {string} dir Dossier de départ.
- * @returns {Promise<string[]>} Chemins absolus des fichiers .js trouvés.
+ * @returns {Promise<string[]>} Chemins absolus des fichiers .mjs trouvés.
  */
 async function collectJsFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -21,7 +21,7 @@ async function collectJsFiles(dir) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       files.push(...(await collectJsFiles(fullPath)));
-    } else if (entry.isFile() && entry.name.endsWith('.js')) {
+    } else if (entry.isFile() && entry.name.endsWith('.mjs')) {
       files.push(fullPath);
     }
   }
@@ -32,7 +32,7 @@ async function collectJsFiles(dir) {
 /**
  * Normalise un chemin absolu en chemin relatif à la racine du projet, séparateurs POSIX.
  * @param {string} filePath Chemin absolu du fichier.
- * @returns {string} Chemin relatif lisible (ex. `src/core/scene.js`).
+ * @returns {string} Chemin relatif lisible (ex. `src/core/scene.mjs`).
  */
 function toRelativePath(filePath) {
   return relative(ROOT_DIR, filePath).split(sep).join('/');
@@ -65,7 +65,7 @@ function checkFile(content) {
 }
 
 /**
- * Parcourt `src/`, vérifie chaque fichier .js et imprime un rapport PASS/FAIL.
+ * Parcourt `src/`, vérifie chaque fichier .mjs et imprime un rapport PASS/FAIL.
  * @returns {Promise<void>} Se termine après avoir fixé le code de sortie du processus.
  */
 async function main() {
@@ -79,7 +79,7 @@ async function main() {
   }
 
   if (files.length === 0) {
-    console.log('FAIL  aucun fichier .js trouvé dans src/');
+    console.log('FAIL  aucun fichier .mjs trouvé dans src/');
     process.exitCode = 1;
     return;
   }

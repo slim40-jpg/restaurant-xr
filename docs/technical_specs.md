@@ -105,21 +105,21 @@ src/
 
 | Module | Responsabilité unique | Dépend de |
 | --- | --- | --- |
-| `config/constants.js` | Source de vérité des valeurs numériques et des libellés | — |
-| `core/renderer.js` | Créer le renderer WebGPU et garantir le repli WebGL2 | `three/webgpu`, `three/addons` |
-| `core/scene.js` | Créer scène + caméra, installer l'éclairage | `three`, `config` |
-| `world/environment.js` | Construire le bâti (sol, murs, plafond, décor) | `three`, `config` |
-| `world/furniture.js` | Fabriquer une table / une chaise isolée | `three`, `config` |
-| `world/restaurant.js` | Composer environnement + mobilier | `environment`, `furniture`, `config` |
-| `xr/controllers.js` | Exposer manette, grip et rayon de visée | `three`, `three/addons` |
-| `interaction/selection.js` | Transformer un rayon en transition d'état | `three`, `config` |
-| `interaction/pointer.js` | Traduire un clic souris en rayon monde | `three` |
-| `interaction/controls.js` | Piloter la caméra hors session XR | `three/addons` |
-| `ui/status-panel.js` | Afficher l'état dans le DOM | `config` |
-| `ui/status-panel-3d.js` | Afficher l'état sur un plan texturé (VR) | `three`, `config` |
-| `ui/status-fanout.js` | Diffuser un appel vers plusieurs panneaux | — |
-| `ui/backend-badge.js` | Rendre visible le backend actif | `three/webgpu` |
-| `main.js` | Câbler le tout, boucle de rendu, redimensionnement | tous |
+| `config/constants.mjs` | Source de vérité des valeurs numériques et des libellés | — |
+| `core/renderer.mjs` | Créer le renderer WebGPU et garantir le repli WebGL2 | `three/webgpu`, `three/addons` |
+| `core/scene.mjs` | Créer scène + caméra, installer l'éclairage | `three`, `config` |
+| `world/environment.mjs` | Construire le bâti (sol, murs, plafond, décor) | `three`, `config` |
+| `world/furniture.mjs` | Fabriquer une table / une chaise isolée | `three`, `config` |
+| `world/restaurant.mjs` | Composer environnement + mobilier | `environment`, `furniture`, `config` |
+| `xr/controllers.mjs` | Exposer manette, grip et rayon de visée | `three`, `three/addons` |
+| `interaction/selection.mjs` | Transformer un rayon en transition d'état | `three`, `config` |
+| `interaction/pointer.mjs` | Traduire un clic souris en rayon monde | `three` |
+| `interaction/controls.mjs` | Piloter la caméra hors session XR | `three/addons` |
+| `ui/status-panel.mjs` | Afficher l'état dans le DOM | `config` |
+| `ui/status-panel-3d.mjs` | Afficher l'état sur un plan texturé (VR) | `three`, `config` |
+| `ui/status-fanout.mjs` | Diffuser un appel vers plusieurs panneaux | — |
+| `ui/backend-badge.mjs` | Rendre visible le backend actif | `three/webgpu` |
+| `main.mjs` | Câbler le tout, boucle de rendu, redimensionnement | tous |
 
 ### 4.2 Règles de dépendance
 
@@ -127,8 +127,8 @@ src/
 2. `world/**` ne connaît ni la XR ni l'interface : il ne produit que des `Object3D`.
 3. `interaction/**` ne crée jamais de géométrie ; il lit et mute l'état d'objets existants.
 4. `ui/**` est le seul module autorisé à écrire du texte applicatif dans le DOM.
-5. `main.js` ne contient aucune règle métier (aucun `if` sur un statut de table).
-6. Aucun module n'importe `main.js`.
+5. `main.mjs` ne contient aucune règle métier (aucun `if` sur un statut de table).
+6. Aucun module n'importe `main.mjs`.
 
 ---
 
@@ -136,7 +136,7 @@ src/
 
 ### 5.1 Table (état runtime, client)
 
-Chaque table est décrite dans `src/world/layout.js` (`TABLE_CATALOGUE`) puis
+Chaque table est décrite dans `src/world/layout.mjs` (`TABLE_CATALOGUE`) puis
 instanciée en `Object3D`. Les propriétés de choix d'une place sont **des données**,
 pas du code : c'est ce qui permet de trier, filtrer et, plus tard, persister.
 
@@ -159,7 +159,7 @@ structure parallèle à désynchroniser. Le `marker` est référencé directemen
 couplage à la forme du maillage.
 
 **Conséquence produit** : une table n'est plus « un meuble libre » mais une place
-caractérisée. `interaction/recommend.js` note chaque table selon les préférences du
+caractérisée. `interaction/recommend.mjs` note chaque table selon les préférences du
 client (zone, nombre de couverts, calme, éloignement des WC) et écarte les tables
 incompatibles ou indisponibles.
 
@@ -216,17 +216,17 @@ Règles :
 
 | API | Rôle | Module | Preuve |
 | --- | --- | --- | --- |
-| **WebXR Device API** | Ouverture de sessions `immersive-vr` et `immersive-ar`, poses tête/manettes | `xr/controllers.js` | `renderer.xr.enabled = true`, `VRButton.createButton`, `ARButton.createButton` |
-| **WebXR local-floor** | Ancrage de la scène à la hauteur du sol réel en AR et VR | `xr/controllers.js` | `ARButton.createButton(..., { requiredFeatures: ['local-floor'] })` |
-| **WebGPU** | Rendu GPU principal (three r187) | `core/renderer.js` | `new THREE.WebGPURenderer()` — `renderer.backend.isWebGPUBackend` |
-| **WebGL 2.0** | Rendu GPU de repli, **y compris pendant une session XR** | `core/renderer.js` | `new THREE.WebGPURenderer({ forceWebGL: true })` via `setupWebGLXRFallback` |
-| **WebXR Input Sources** | Manettes, `handedness`, `gamepad`, `gripSpace` | `xr/controllers.js` | `renderer.xr.getController(0)`, `getControllerGrip(0)` |
-| **Gamepad API** | Axes joystick et gâchette (locomotion W4) | `xr/controllers.js` (à venir : `xr/locomotion.js`) | `session.inputSources[i].gamepad` |
-| **`XRSession.requestAnimationFrame`** | Boucle synchronisée au casque | `main.js` | `renderer.setAnimationLoop(...)` |
-| **Pointer Events** | Sélection à la souris, distinction clic / glisser d'orbite | `interaction/pointer.js` | `pointerdown` / `pointerup` + `getBoundingClientRect()` |
-| **DOM API** | Panneau de statut, boutons VR/AR, badge de backend | `ui/status-panel.js`, `ui/backend-badge.js`, `xr/controllers.js` | `document.getElementById('status')` |
-| **Canvas 2D + `CanvasTexture`** | Panneau de statut lisible **dans le casque** | `ui/status-panel-3d.js` | `new THREE.CanvasTexture(canvas)` |
-| **Raycaster (three.js)** | Intersection rayon ↔ tables | `interaction/selection.js` | `raycaster.intersectObjects(tablesGroup.children, true)` |
+| **WebXR Device API** | Ouverture de sessions `immersive-vr` et `immersive-ar`, poses tête/manettes | `xr/controllers.mjs` | `renderer.xr.enabled = true`, `VRButton.createButton`, `ARButton.createButton` |
+| **WebXR local-floor** | Ancrage de la scène à la hauteur du sol réel en AR et VR | `xr/controllers.mjs` | `ARButton.createButton(..., { requiredFeatures: ['local-floor'] })` |
+| **WebGPU** | Rendu GPU principal (three r187) | `core/renderer.mjs` | `new THREE.WebGPURenderer()` — `renderer.backend.isWebGPUBackend` |
+| **WebGL 2.0** | Rendu GPU de repli, **y compris pendant une session XR** | `core/renderer.mjs` | `new THREE.WebGPURenderer({ forceWebGL: true })` via `setupWebGLXRFallback` |
+| **WebXR Input Sources** | Manettes, `handedness`, `gamepad`, `gripSpace` | `xr/controllers.mjs` | `renderer.xr.getController(0)`, `getControllerGrip(0)` |
+| **Gamepad API** | Axes joystick et gâchette (locomotion W4) | `xr/controllers.mjs` (à venir : `xr/locomotion.js`) | `session.inputSources[i].gamepad` |
+| **`XRSession.requestAnimationFrame`** | Boucle synchronisée au casque | `main.mjs` | `renderer.setAnimationLoop(...)` |
+| **Pointer Events** | Sélection à la souris, distinction clic / glisser d'orbite | `interaction/pointer.mjs` | `pointerdown` / `pointerup` + `getBoundingClientRect()` |
+| **DOM API** | Panneau de statut, boutons VR/AR, badge de backend | `ui/status-panel.mjs`, `ui/backend-badge.mjs`, `xr/controllers.mjs` | `document.getElementById('status')` |
+| **Canvas 2D + `CanvasTexture`** | Panneau de statut lisible **dans le casque** | `ui/status-panel-3d.mjs` | `new THREE.CanvasTexture(canvas)` |
+| **Raycaster (three.js)** | Intersection rayon ↔ tables | `interaction/selection.mjs` | `raycaster.intersectObjects(tablesGroup.children, true)` |
 
 > `GLTFLoader` et `Fetch` ne sont **pas** utilisés par la version actuelle du code :
 > l'intégration des modèles `.glb` du dossier `assets/` est planifiée en W4 et ne
@@ -331,9 +331,9 @@ Aucune dépendance supplémentaire n'est requise : le test consomme les modules
 | --- | --- | --- | --- |
 | DT-01 | ~~Three.js r160, aucun rendu WebGPU~~ **Résolu** : r187 + `WebGPURenderer` + repli WebGL2 | — | ✅ W2 |
 | DT-02 | Aucun manifeste ni service worker | Application non installable / non hors-ligne | W3 |
-| DT-03 | ~~Panneau de statut en DOM, invisible en session immersive~~ **Résolu** : panneau 3D texturé (`ui/status-panel-3d.js`) diffusé avec le panneau DOM | — | ✅ W2 |
+| DT-03 | ~~Panneau de statut en DOM, invisible en session immersive~~ **Résolu** : panneau 3D texturé (`ui/status-panel-3d.mjs`) diffusé avec le panneau DOM | — | ✅ W2 |
 | DT-04 | Téléportation absente : la caméra est fixe en VR | Confort et exploration limités | W4 |
-| DT-05 | ~~`id` de table dérivé des coordonnées~~ **Résolu** : identifiants stables `T01`…`T16` dans `world/layout.js` | — | ✅ W3 |
+| DT-05 | ~~`id` de table dérivé des coordonnées~~ **Résolu** : identifiants stables `T01`…`T16` dans `world/layout.mjs` | — | ✅ W3 |
 | DT-06 | État des tables purement local (aucune persistance) | Deux utilisateurs ne partagent pas le même état | W5 |
 | DT-07 | `assets/restaurant_in_the_evening.glb` (30,1 Mo) versionné sans Git LFS | Dépôt lourd, clones lents | W1 (`.gitattributes`) puis W4 |
 | DT-08 | Licence des modèles Sketchfab non confirmée dans `ATTRIBUTION.md` | Risque juridique / remark de soutenance | Manuel — avant W2 |

@@ -18,7 +18,7 @@ vérification n'a pas été faite, elle est marquée `NON VÉRIFIÉ` avec la rai
 
 | Élément | Détail |
 | --- | --- |
-| Code modulaire | `main.js` passe de 332 lignes à 41 ; 10 modules dans `config/`, `core/`, `world/`, `xr/`, `interaction/`, `ui/` |
+| Code modulaire | `main.mjs` passe de 332 lignes à 41 ; 10 modules dans `config/`, `core/`, `world/`, `xr/`, `interaction/`, `ui/` |
 | En-têtes réglementaires | `@file`, `@brief`, `@author`, `@date`, `@role` sur chaque module, vérifiés automatiquement |
 | Outillage | ESLint (configuration plate, ES2022), Prettier, `.editorconfig`, vérificateur d'en-têtes sans dépendance |
 | Documentation | `technical_specs.md`, `PLANNING.md`, `ARCHITECTURE.md`, 2 ADR, ce journal |
@@ -58,7 +58,7 @@ $ msedge --headless=new --dump-dom http://127.0.0.1:8125/
 <button id="VRButton" ...>VR NOT SUPPORTED</button>
 ```
 
-Interprétation : `main.js` s'exécute jusqu'au bout (canvas monté, bouton VR injecté).
+Interprétation : `main.mjs` s'exécute jusqu'au bout (canvas monté, bouton VR injecté).
 `VR NOT SUPPORTED` est attendu en headless, où `navigator.xr` n'existe pas.
 
 **Test fonctionnel** — `tests/smoke.html` : **11/11 assertions réussies**, dont :
@@ -105,7 +105,7 @@ c82468f docs(attribution): corriger les déclarations et renseigner les licences
 
 | Remarque | Traitement | Preuve |
 | --- | --- | --- |
-| « Structurer votre code » | Découpage en 10 modules, `main.js` à 41 lignes | `src/`, ADR-0001, `npm run verify` |
+| « Structurer votre code » | Découpage en 10 modules, `main.mjs` à 41 lignes | `src/`, ADR-0001, `npm run verify` |
 | « Dossier `/docs` absent » | `technical_specs.md` + `PLANNING.md` + `ARCHITECTURE.md` + 2 ADR | `docs/` |
 | « En-têtes et blocs de commentaires manquants » | En-tête obligatoire par fichier, JSDoc sur chaque export | `npm run check:headers` → 10/10 |
 | « 5 commits seulement » | 8 commits sur une branche dédiée, un par préoccupation | `git log` ci-dessus |
@@ -133,7 +133,7 @@ Jalon **W2** : migration vers `three@0.187.0` avec `WebGPURenderer` et repli
 | Sélection à la souris | clic = réservation, glisser = orbite (seuil 6 px / 400 ms), `dispose()` propre |
 | Caméra desktop | `OrbitControls` bornés (1,5–9 m, jamais sous le sol), coupés pendant une session XR |
 | Panneau d'état 3D | `CanvasTexture` ancré dans la salle, orienté vers la caméra → le retour est enfin lisible **dans** le casque (DT-03) |
-| Diffusion d'état | `ui/status-fanout.js` publie le même état sur le panneau DOM et le panneau 3D |
+| Diffusion d'état | `ui/status-fanout.mjs` publie le même état sur le panneau DOM et le panneau 3D |
 | Capture de référence | `docs/img/w2-application.png` (1280 × 800, rendu réel) |
 
 ### Vérifié
@@ -304,7 +304,7 @@ HTTPS. La salle réaliste et le choix de place sont livrés en avance sur W4.
 | Tables | **24** : 16 au rez, 4 en mezzanine (T21–T24), 4 en terrasse (T17–T20), toutes avec `level` |
 | Marche | Caméra à hauteur d'yeux, ZQSD/WASD, souris (pointer lock), collision murs/bar/garde-corps, montée d'escalier lissée, bascule `V` |
 | Fiche table | Clic = fiche + **menu de 16 plats** ; la réservation passe par un bouton explicite |
-| Surfaces | `walkable.js` : surfaces praticables + colliders, testables sans Three.js |
+| Surfaces | `walkable.mjs` : surfaces praticables + colliders, testables sans Three.js |
 
 ### Vérifié
 

@@ -8,8 +8,8 @@
 
 import process from 'node:process';
 
-import { LEVELS, ROOM_ANCHORS, ROOM_LAYOUT, TABLE_CATALOGUE } from '../src/world/layout.js';
-import { surfaceHeightAt } from '../src/world/walkable.js';
+import { LEVELS, ROOM_ANCHORS, ROOM_LAYOUT, TABLE_CATALOGUE } from '../src/world/layout.mjs';
+import { surfaceHeightAt } from '../src/world/walkable.mjs';
 
 const { WALL_CLEARANCE, WIDTH, DEPTH, HEIGHT } = ROOM_LAYOUT;
 const HALF_W = WIDTH / 2;

@@ -67,7 +67,7 @@ Voir `CODEOWNERS`. En résumé :
 | --- | --- |
 | Slim Selmi | `src/core/**`, `src/world/**`, `src/xr/**` |
 | Hazem Bellili | `src/ui/**`, `assets/**`, `index.html` (styles) |
-| Wassim Hajji | `src/main.js`, `src/config/**`, `src/interaction/**`, `scripts/**`, tests |
+| Wassim Hajji | `src/main.mjs`, `src/config/**`, `src/interaction/**`, `scripts/**`, tests |
 
 Une modification hors de son périmètre exige l'accord explicite du propriétaire
 dans la Pull Request. Cela évite les conflits et rend la contribution de chacun
@@ -179,7 +179,7 @@ Une entrée par prompt, dans l'ordre chronologique :
 
 ### Résultat produit
 
-- `src/xr/locomotion.js` (créé), `src/main.js:42-58` (modifié)
+- `src/xr/locomotion.mjs` (créé), `src/main.js:42-58` (modifié)
 
 ### Vérification étudiante
 

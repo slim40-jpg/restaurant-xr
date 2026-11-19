@@ -61,14 +61,14 @@ main.js ──┬──> config/constants
           └──> ui/backend-badge ──────> three/webgpu
 ```
 
-Le graphe est acyclique. `config/constants.js` est une feuille : elle n'importe
-rien, ce qui la rend testable et sans effet de bord. `ui/status-fanout.js` est le
+Le graphe est acyclique. `config/constants.mjs` est une feuille : elle n'importe
+rien, ce qui la rend testable et sans effet de bord. `ui/status-fanout.mjs` est le
 seul module qui connaît plusieurs panneaux à la fois : il permet de publier un
 même état sur le DOM (desktop) et sur le panneau 3D (VR) sans que
 `interaction/**` sache combien de supports existent.
 
-`world/layout.js` est une **donnée**, pas du code : il ne construit rien. C'est ce
-qui permet à `interaction/recommend.js` de classer les tables sans jamais toucher
+`world/layout.mjs` est une **donnée**, pas du code : il ne construit rien. C'est ce
+qui permet à `interaction/recommend.mjs` de classer les tables sans jamais toucher
 à Three.js, et à `tests/smoke.html` de vérifier le classement sans navigateur 3D.
 
 ---
@@ -95,7 +95,7 @@ main.js
  10. window.addEventListener('resize', ...)
 ```
 
-Aucune règle métier dans `main.js` : il ne connaît que des noms de fonctions.
+Aucune règle métier dans `main.mjs` : il ne connaît que des noms de fonctions.
 
 ### 3.2 Boucle de rendu
 
@@ -134,16 +134,16 @@ meuble changeait de forme.
 
 | Extension | Où intervenir | Sans toucher à |
 | --- | --- | --- |
-| Ajouter une table | `world/layout.js` → `TABLE_CATALOGUE` (position, zone, capacité) | tout le reste |
-| Ajouter une zone ou une caractéristique | `config/constants.js` (`ZONES`, `TABLE_FEATURES`, libellés) puis `world/layout.js` | `world/environment.js` |
-| Ajouter un critère de recommandation | `interaction/recommend.js` (barème de score) | `world/**`, `ui/**` |
-| Ajouter un état de table | `constants.js` (couleur + libellé) puis `selection.js` | `world/**` |
+| Ajouter une table | `world/layout.mjs` → `TABLE_CATALOGUE` (position, zone, capacité) | tout le reste |
+| Ajouter une zone ou une caractéristique | `config/constants.mjs` (`ZONES`, `TABLE_FEATURES`, libellés) puis `world/layout.mjs` | `world/environment.mjs` |
+| Ajouter un critère de recommandation | `interaction/recommend.mjs` (barème de score) | `world/**`, `ui/**` |
+| Ajouter un état de table | `constants.mjs` (couleur + libellé) puis `selection.mjs` | `world/**` |
 | Nouvelle interaction (téléportation) | `xr/locomotion.js` + `interaction/teleport.js` | `world/**`, `ui/**` |
-| Panneau de statut 3D | **fait** : `ui/status-panel-3d.js` implémente le même contrat que le panneau DOM, diffusé par `ui/status-fanout.js` | `interaction/**` |
-| Persistance | ajouter `src/net/sync.js` consommant la même machine à états | `world/**`, `core/**` |
-| Nouveau backend de rendu | `core/renderer.js` uniquement (le reste ne connaît que `getRenderer()`) | `world/**`, `ui/**` |
+| Panneau de statut 3D | **fait** : `ui/status-panel-3d.mjs` implémente le même contrat que le panneau DOM, diffusé par `ui/status-fanout.mjs` | `interaction/**` |
+| Persistance | ajouter `src/net/sync.mjs` consommant la même machine à états | `world/**`, `core/**` |
+| Nouveau backend de rendu | `core/renderer.mjs` uniquement (le reste ne connaît que `getRenderer()`) | `world/**`, `ui/**` |
 
-Le contrat d'interface de `ui/status-panel.js` (`showTable`, `showReserved`,
+Le contrat d'interface de `ui/status-panel.mjs` (`showTable`, `showReserved`,
 `showNoTarget`, `setMessage`) est volontairement indépendant du DOM : il permet
 de basculer vers un panneau 3D en W4 sans modifier le module d'interaction.
 
@@ -155,8 +155,8 @@ de basculer vers un panneau 3D en W4 sans modifier le module d'interaction.
 2. `interaction/**` est le seul endroit où une transition d'état est déclenchée.
 3. `ui/**` ne connaît que le contrat des panneaux et Three.js pour le rendu texte : il ne lit jamais l'état d'une table, il le reçoit.
 4. `core/**` ignore l'existence des tables.
-5. Aucun module hors `main.js` n'ajoute d'objet à la scène racine (sauf
-   `xr/controllers.js`, qui gère son propre cycle de vie).
+5. Aucun module hors `main.mjs` n'ajoute d'objet à la scène racine (sauf
+   `xr/controllers.mjs`, qui gère son propre cycle de vie).
 6. Une constante affichée à l'utilisateur n'est jamais dupliquée en dur.
 
 ---
@@ -165,7 +165,7 @@ de basculer vers un panneau 3D en W4 sans modifier le module d'interaction.
 
 | ADR | Sujet | Statut |
 | --- | --- | --- |
-| [0001](adr/0001-modularisation.md) | Modularisation de `main.js` | Accepté |
+| [0001](adr/0001-modularisation.md) | Modularisation de `main.mjs` | Accepté |
 | [0002](adr/0002-strategie-documentation.md) | Séparation README / `docs/` | Accepté |
 | 0003 | Téléportation (locomotion) | Prévu W4 |
 | 0004 | Backend multi-utilisateur | Prévu W5 |

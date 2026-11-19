@@ -30,7 +30,7 @@ les descriptions en français : c'est ce que fait une carte bilingue de restaura
 et cela garde l'interface lisible pour le jury.
 
 **La carte est une donnée, pas du code** : `MENU_ITEMS` est un tableau gelé, consommé par
-`ui/menu-list.js`. Un plat s'ajoute en une entrée ; un prix change sur une ligne.
+`ui/menu-list.mjs`. Un plat s'ajoute en une entrée ; un prix change sur une ligne.
 
 ## Ce qui n'est pas fait
 

@@ -16,10 +16,10 @@ Les critères réellement vérifiés par les navigateurs :
 | Point d'entrée et périmètre | `start_url: "./"` et `scope: "./"` — relatifs, donc valides en sous-chemin |
 | Mode d'affichage | `display: "standalone"`, avec `display_override` |
 | Icônes | 192×192, 512×512 et 512×512 `maskable` dans `icons/` |
-| Service worker | `sw.js` enregistré par `src/core/pwa.js` avec au moins un gestionnaire `fetch` |
+| Service worker | `sw.js` enregistré par `src/core/pwa.mjs` avec au moins un gestionnaire `fetch` |
 | Couleurs | `background_color` et `theme_color` = `#0d0d16` |
 
-> Le service worker et le manifeste ne prennent effet que si `src/core/pwa.js` est appelé au
+> Le service worker et le manifeste ne prennent effet que si `src/core/pwa.mjs` est appelé au
 > démarrage (`registerServiceWorker()`) et si le manifeste est bien lié dans `index.html`.
 > Ces deux branchements sont hors du périmètre de ce module et doivent être vérifiés à
 > l'intégration.

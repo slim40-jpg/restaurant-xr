@@ -38,7 +38,7 @@ Le décor (mosaïques, comptoirs, vitrines, enseignes) reste à faire : voir §5
 
 ## 3. Surfaces praticables et collisions
 
-`src/world/walkable.js` est le contrat consommé par le mode marche, sans Three.js :
+`src/world/walkable.mjs` est le contrat consommé par le mode marche, sans Three.js :
 
 ```js
 WALK_SURFACES   // nef, seuil, terrasse  — toutes à y = 0

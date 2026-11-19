@@ -54,14 +54,14 @@
 
     <script type="module">
       import * as THREE from 'three';
-      import { buildRestaurant } from '../src/world/restaurant.js';
-      import { createStatusPanel } from '../src/ui/status-panel.js';
-      import { createWorldStatusPanel } from '../src/ui/status-panel-3d.js';
-      import { createStatusFanout } from '../src/ui/status-fanout.js';
-      import { enablePointerSelection } from '../src/interaction/pointer.js';
-      import { createSelectionHandler, createSelectionService } from '../src/interaction/selection.js';
-      import { FEATURE_LABELS_FR, ZONE_LABELS_FR } from '../src/config/constants.js';
-      import { describeTable, findMatchingTables, scoreTable } from '../src/interaction/recommend.js';
+      import { buildRestaurant } from '../src/world/restaurant.mjs';
+      import { createStatusPanel } from '../src/ui/status-panel.mjs';
+      import { createWorldStatusPanel } from '../src/ui/status-panel-3d.mjs';
+      import { createStatusFanout } from '../src/ui/status-fanout.mjs';
+      import { enablePointerSelection } from '../src/interaction/pointer.mjs';
+      import { createSelectionHandler, createSelectionService } from '../src/interaction/selection.mjs';
+      import { FEATURE_LABELS_FR, ZONE_LABELS_FR } from '../src/config/constants.mjs';
+      import { describeTable, findMatchingTables, scoreTable } from '../src/interaction/recommend.mjs';
 
       const results = [];
       const check = (name, ok, extra = '') =>

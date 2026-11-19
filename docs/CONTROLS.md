@@ -27,7 +27,7 @@ l'application. `Échap` libère le curseur : le mode marche se coupe alors de lu
 
 ## Escalier et terrasse
 
-`src/world/walkable.js` expose `surfaceHeightAt(x, z)`, qui renvoie l'altitude praticable en
+`src/world/walkable.mjs` expose `surfaceHeightAt(x, z)`, qui renvoie l'altitude praticable en
 tout point. L'escalier n'est pas modélisé marche par marche pour le déplacement : quatre paliers
 de 0,8125 m sont interpolés en une rampe continue. Le marcheur lisse ensuite sa hauteur
 (`y += (sol - y) × min(1, dt × 12)`), ce qui transforme les marches en une montée souple plutôt
