@@ -17,13 +17,22 @@ import * as THREE from 'three/webgpu';
 function describeState(renderer, reason) {
   const backend = renderer && renderer.backend;
 
-  // Un backend WebGL2 ne peut plus être un état nominal : c'est un échec de WebGPU.
-  if (reason || (backend && backend.isWebGLBackend === true)) {
+  // Un backend WebGL2 est ici un état assumé : c'est le repli des sessions immersives.
+  if (reason === 'webgl-fallback' || (backend && backend.isWebGLBackend === true)) {
+    return {
+      label: 'WebGL 2',
+      detail: 'repli XR',
+      color: '#fbbf24',
+      title: 'Rendu sur le backend WebGL2 : WebGPU-XR n’est pas exposé sur cet appareil.',
+    };
+  }
+
+  if (reason) {
     return {
       label: 'WebGPU',
       detail: 'indisponible',
       color: '#f87171',
-      title: 'WebGPU est indisponible : le rendu est bloqué, aucun repli WebGL2 n’est autorisé.',
+      title: 'WebGPU est indisponible et aucun backend de secours n’a été obtenu.',
     };
   }
 

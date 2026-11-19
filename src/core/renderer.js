@@ -8,6 +8,7 @@
 
 import * as THREE from 'three/webgpu';
 import { showWebGPUUnavailable } from '../ui/webgpu-gate.js';
+import { installXRFallback } from './xr-fallback.js';
 
 /**
  * Type d'ombre retenu. `PCFSoftShadowMap` a été supprimé de Three.js en r185 :
@@ -64,7 +65,7 @@ export function createXRRenderer({ container = document.body } = {}) {
   /** @type {Function|null} */
   let loopCallback = null;
 
-  const renderer = new THREE.WebGPURenderer({ antialias: true, multiview: true });
+  let renderer = new THREE.WebGPURenderer({ antialias: true, multiview: true });
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true;
@@ -87,6 +88,17 @@ export function createXRRenderer({ container = document.body } = {}) {
   // updateStyle = false : la taille CSS est laissée à la feuille de style (100 %).
   renderer.setSize(size.width, size.height, false);
   container.appendChild(canvas);
+
+  // Le repli ne sert QUE pendant une session immersive : à l'écran, le rendu reste WebGPU.
+  installXRFallback({
+    renderer,
+    size,
+    shadowType: SHADOW_MAP_TYPE,
+    onSwap: (next) => {
+      renderer = next;
+      if (loopCallback) next.setAnimationLoop(loopCallback);
+    },
+  });
 
   /**
    * Enregistre l'échec, neutralise le rendu et affiche l'écran de blocage.
@@ -112,22 +124,16 @@ export function createXRRenderer({ container = document.body } = {}) {
    * @returns {Promise<{ supported: boolean, reason: string|null }>} Verdict d'initialisation.
    */
   async function runInit() {
-    if (typeof navigator === 'undefined' || !navigator.gpu) {
-      return block('no-navigator-gpu');
-    }
-
     try {
+      // WebGPURenderer bascule seul sur son backend WebGL2 si aucun adaptateur GPU n'est exposé.
       await renderer.init();
     } catch {
-      // Aucun backend exploitable : on ne tente aucun autre chemin de rendu.
       return block('unsupported-backend');
     }
 
+    // Sur cette branche, un backend WebGL2 est accepté : c'est le seul moyen de faire
+    // tourner l'AR et la VR sur un appareil qui ne propose pas encore WebGPU-XR.
     const cause = describeBackendFailure(renderer.backend);
-
-    if (cause !== null) {
-      return block(cause);
-    }
 
     supported = true;
     renderer.setSize(size.width, size.height, false);
@@ -137,7 +143,7 @@ export function createXRRenderer({ container = document.body } = {}) {
       renderer.setAnimationLoop(loopCallback);
     }
 
-    return { supported: true, reason: null };
+    return { supported: true, reason: cause === null ? null : 'webgl-fallback' };
   }
 
   /**
