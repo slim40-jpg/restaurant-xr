@@ -4,30 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0d0d16" />
-    <meta
-      name="description"
-      content="Choisir sa place dans un restaurant en 3D, sur écran ou en réalité virtuelle."
-    />
+    <meta name="description" content="Choisir sa place dans un restaurant en 3D, sur écran ou en réalité virtuelle." />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <title>Restaurant XR — réservation immersive</title>
     <style>
-      :root {
-        color-scheme: dark;
-      }
+      :root { color-scheme: dark; }
       body {
         margin: 0;
         overflow: hidden;
         background: #0d0d16;
         font-family: system-ui, sans-serif;
       }
-      #app {
-        position: fixed;
-        inset: 0;
-      }
-      #app canvas {
-        display: block;
-      }
+      #app { position: fixed; inset: 0; }
+      #app canvas { display: block; }
       #status {
         position: absolute;
         top: 18px;
@@ -67,28 +57,51 @@
         transform: translateX(-50%);
         z-index: 110;
       }
-      #table-card > * {
-        pointer-events: auto;
+      #table-card > * { pointer-events: auto; }
+      
+      /* === AJOUT : Auth Overlay === */
+      #auth-root {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(13, 13, 22, 0.9); backdrop-filter: blur(4px);
       }
+      .auth-panel {
+        background: #1a1a24; padding: 32px; border-radius: 12px;
+        border: 1px solid #333; color: white;
+        display: flex; flex-direction: column; gap: 16px; width: 340px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      }
+      .auth-panel h2 { margin: 0 0 8px 0; font-size: 20px; text-align: center; }
+      .auth-panel input {
+        padding: 12px; border-radius: 6px; border: 1px solid #444;
+        background: #0d0d16; color: white; font-size: 14px;
+      }
+      .auth-panel input:focus { outline: none; border-color: #22c55e; }
+      .auth-panel button {
+        padding: 12px; border-radius: 6px; border: none;
+        background: #22c55e; color: black; font-weight: bold;
+        cursor: pointer; transition: background 0.2s; font-size: 14px;
+      }
+      .auth-panel button:hover { background: #16a34a; }
+      #auth-error { color: #ef4444; font-size: 13px; margin: 0; text-align: center; min-height: 16px; }
+      /* ======================== */
+
       @media (max-width: 720px) {
-        #panel {
-          width: calc(100vw - 36px);
-        }
-        #table-card {
-          inset: auto 12px 12px 12px;
-          bottom: 12px;
-          top: auto;
-        }
+        #panel { width: calc(100vw - 36px); }
+        #table-card { inset: auto 12px 12px 12px; bottom: 12px; top: auto; }
       }
     </style>
   </head>
   <body>
+    <!-- === AJOUT : Conteneur Auth === -->
+    <div id="auth-root"></div>
+    
     <div id="app"></div>
     <div id="status">Pointez une table et appuyez sur la gâchette</div>
     <div id="panel"></div>
     <div id="view-toggle"></div>
     <div id="table-card"></div>
-    <!-- move the script to the head -->
+    
     <script type="importmap">
       {
         "imports": {

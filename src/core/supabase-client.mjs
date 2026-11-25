@@ -1,11 +1,14 @@
-// @file supabase-client.mjs
-// @author Slim Selmi
-// @date 2026-11-25
-// @role Supabase client initialization
+/**
+ * @file    src/core/supabase-client.mjs
+ * @brief   Client Supabase (URL + clé publishable).
+ * @author  Wassim Hajji
+ * @date    2026-11-25
+ * @role    Expose une instance unique du client Supabase.
+ */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const SUPABASE_URL = 'https://udhmsddfhuobakrnwqun.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_m0mITa-lwWwwLgVXgNk-Yg_U_kmVVu2';
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(
+  'https://udhmsddfhuobakrnwqun.supabase.co',
+  'sb_publishable_m0mITa-lwWwwLgVXgNk-Yg_U_kmVVu2'
+);

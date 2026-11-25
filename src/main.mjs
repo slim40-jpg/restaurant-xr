@@ -1,9 +1,8 @@
 /**
  * @file    src/main.mjs
  * @brief   Point d'entrée : assemble les modules, branche les interactions et démarre le rendu.
- * @author  Wassim Hajji — Logique de réservation / tests
- * @date    2026-11-11
- * @role    Bootstrap uniquement — aucune construction 3D ni logique métier ici.
+ * @author  Wassim Hajji
+ * @date    2026-11-25
  */
 
 import { STATUS_ELEMENT_ID } from './config/constants.mjs';
@@ -28,61 +27,52 @@ import { WALK_COLLIDERS, surfaceHeightAt } from './world/walkable.mjs';
 import { setupAR } from './xr/ar.mjs';
 import { setupControllers } from './xr/controllers.mjs';
 
-// === AJOUT BACKEND : imports pour la persistance et le temps réel ===
+// === AJOUT BACKEND : Imports ===
 import { getCurrentUser } from './interaction/auth.mjs';
-import { getReservedTableIds, reserve as reserveInSupabase } from './interaction/reserve.mjs';
+import { reserve as reserveInSupabase } from './interaction/reserve.mjs';
 import { subscribeToReservations } from './core/realtime.mjs';
-// === FIN AJOUT BACKEND ===
+import { fetchTableStates } from './interaction/table-status.mjs';
+import { applyTableStateColors } from './world/table-colors.mjs';
+import { renderAuthPanel } from './ui/auth-panel.mjs';
+// ===============================
 
-// Le canvas est monté dans ce conteneur stable : lors du basculement de backend
-// pour la XR, seul le canvas est remplacé et les écouteurs survivent.
 const container = document.getElementById('app') ?? document.body;
 
 // ========== 1. RENDU ET SCÈNE ==========
 const xrRenderer = createXRRenderer({ container });
 const { scene, camera } = createScene();
 addLighting(scene);
-
-// Point de vue desktop : hauteur de salle, presque à hauteur d'œil, pour éviter
-// qu'un plafond nu ou un sol vide n'occupe la moitié de l'image.
-// En session immersive, la pose du casque remplace cette position.
 camera.position.set(0, 1.95, 6.2);
 
-// ========== 2. RESTAURANT ET PANNEAUX DE STATUT ==========
+// ========== 2. RESTAURANT ET PANNEAUX ==========
 const { restaurant, tablesGroup } = buildRestaurant();
 scene.add(restaurant);
 
-// Panneau flottant réservé à la VR : côté écran, le panneau DOM du haut fait déjà
-// le travail et afficher les deux dupliquerait le message. En session immersive,
-// c'est le seul support lisible, car le DOM est invisible dans le casque.
 const worldPanel = createWorldStatusPanel({ position: [0, 2.55, -2.6], size: [3, 0.8] });
 worldPanel.object3D.visible = false;
 scene.add(worldPanel.object3D);
 
-// Le même état est publié sur deux supports : le DOM (desktop) et un panneau
-// 3D ancré dans la salle (lisible dans le casque, où le DOM est invisible).
 const statusPanel = createStatusFanout([
   createStatusPanel(document.getElementById(STATUS_ELEMENT_ID) ?? document.createElement('div')),
   worldPanel,
 ]);
 
-// ========== 3. ENTRÉES : MANETTE, SOURIS, ORBITE ==========
+// ========== 3. ENTRÉES ==========
 const { controller } = setupControllers(xrRenderer.getRenderer(), scene);
 
-// Cliquer une table ne réserve plus : cela ouvre sa fiche (caractéristiques + menu).
-// La réservation passe par le bouton explicite de la fiche, pour éviter les gestes accidentels.
 const tableCard = createTableCard({
   container: document.getElementById('table-card') ?? document.body,
   onReserve: (table) => {
-    // === AJOUT BACKEND : on écrit d'abord en base, puis on rafraîchit l'UI ===
+    // === AJOUT BACKEND : Réservation Supabase ===
     void (async () => {
       const result = await reserveInSupabase(table.id);
       if (result.success) {
         preferences.refresh();
         tableCard.open(table);
+      } else {
+        alert(result.error); // Simple feedback for now
       }
     })();
-    // === FIN AJOUT BACKEND ===
   },
   onClose: () => walkMode.resume(),
 });
@@ -136,89 +126,71 @@ const walkMode = createWalkMode({
 const viewToggle = createViewToggle({
   container: document.getElementById('view-toggle') ?? document.body,
   initial: 'orbit',
-  // En session immersive, la pose du casque pilote la caméra : la marche doit céder.
   onChange: (mode) =>
     viewToggle.setMode(walkMode.setMode(xrRenderer.getRenderer().xr.isPresenting ? 'orbit' : mode)),
 });
-xrRenderer
-  .getRenderer()
-  .xr.addEventListener('sessionstart', () => viewToggle.setMode(walkMode.setMode('orbit')));
+xrRenderer.getRenderer().xr.addEventListener('sessionstart', () => viewToggle.setMode(walkMode.setMode('orbit')));
 
 const badge = createBackendBadge();
+const ar = setupAR({ renderer: xrRenderer.getRenderer(), scene, restaurant, worldPanel });
 
-// Le mode AR est indépendant de la session VR : même page, deux boutons, deux cycles de vie.
-const ar = setupAR({
-  renderer: xrRenderer.getRenderer(),
-  scene,
-  restaurant,
-  worldPanel,
-});
-
-// Le verdict n'est connu qu'après l'initialisation du backend : c'est lui qui décide
-// si l'écran de blocage « WebGPU requis » doit s'afficher (géré par le renderer).
 void xrRenderer.init().then((status) => {
   badge.update(xrRenderer.getRenderer(), status.reason);
 });
 
-// Enregistrement du service worker (ignoré hors contexte sécurisé).
 registerServiceWorker();
 
-// === AJOUT BACKEND : chargement initial de l'état + abonnement Realtime ===
-// On attend que l'utilisateur soit connu, puis on lit les tables déjà réservées.
-// Aucune modification n'est faite aux modules existants : on réutilise
-// `preferences.refresh()` pour que l'UI relise `getTables()` (qui, lui, n'a pas changé).
-void (async () => {
-  const user = await getCurrentUser();
-  if (!user) {
-    // Pas connecté : on laisse l'application tourner en lecture seule.
-    return;
-  }
+// ========== 4. BACKEND & AUTHENTIFICATION ==========
+async function loadStatesAndSubscribe() {
+  const states = await fetchTableStates();
+  applyTableStateColors(tablesGroup, states);
 
-  const reservedIds = await getReservedTableIds();
-  // On stocke les IDs réservés sur les userData des tables pour que la sélection
-  // et le panneau de préférences les voient comme indisponibles.
-  for (const child of tablesGroup.children) {
-    if (child.userData && reservedIds.has(child.userData.id)) {
-      child.userData.status = 'reserved';
-    }
-  }
-  preferences.refresh();
-
-  // Écoute des changements en temps réel (insertions et mises à jour).
   subscribeToReservations(({ eventType, tableId, status }) => {
     const child = tablesGroup.children.find((c) => c.userData?.id === tableId);
     if (!child) return;
 
-    if (eventType === 'INSERT' && status === 'confirmed') {
-      child.userData.status = 'reserved';
-    } else if (eventType === 'UPDATE' && status === 'cancelled') {
-      child.userData.status = 'available';
-    } else if (eventType === 'DELETE') {
-      child.userData.status = 'available';
+    if (eventType === 'DELETE' || status === 'cancelled') {
+      child.userData.state = 'free';
+    } else if (status === 'occupied') {
+      child.userData.state = 'occupied';
+    } else if (status === 'confirmed') {
+      child.userData.state = 'reserved';
     }
 
-    // Les mêmes points d'entrée que l'application existante.
+    applyTableStateColors(tablesGroup, null);
     preferences.refresh();
-    highlighter.highlight([]);
   });
-})();
-// === FIN AJOUT BACKEND ===
+}
 
-// ========== 4. BOUCLE DE RENDU ET REDIMENSIONNEMENT ==========
+async function initBackend() {
+  const user = await getCurrentUser();
+  const authRoot = document.getElementById('auth-root');
+  
+  if (!user) {
+    // Affiche le panneau de connexion
+    authRoot.style.display = 'flex';
+    renderAuthPanel(authRoot, async () => {
+      authRoot.style.display = 'none';
+      await loadStatesAndSubscribe();
+    });
+  } else {
+    // Déjà connecté
+    authRoot.style.display = 'none';
+    await loadStatesAndSubscribe();
+  }
+}
+
+void initBackend();
+
+// ========== 5. BOUCLE DE RENDU ==========
 let lastTime = 0;
-
 xrRenderer.setAnimationLoop((time = 0, frame = null) => {
   const renderer = xrRenderer.getRenderer();
   const delta = lastTime === 0 ? 0 : (time - lastTime) / 1000;
   lastTime = time;
 
-  // Un seul des deux pilote la caméra : OrbitControls réécrirait la position
-  // calculée par le marcheur à chaque appel de `update()`.
-  if (walkMode.isEnabled()) {
-    walkMode.update(delta);
-  } else {
-    controls.update();
-  }
+  if (walkMode.isEnabled()) walkMode.update(delta);
+  else controls.update();
 
   worldPanel.update(camera);
   worldPanel.object3D.visible = renderer.xr.isPresenting && renderer.xr.getSession()?.mode !== 'immersive-ar';
@@ -228,10 +200,6 @@ xrRenderer.setAnimationLoop((time = 0, frame = null) => {
   renderer.render(scene, camera);
 });
 
-/**
- * Aligne la caméra et le buffer de rendu sur la taille réelle du conteneur.
- * @returns {void}
- */
 function applyViewportSize() {
   const { width, height } = xrRenderer.resize();
   camera.aspect = width / height;
@@ -239,12 +207,7 @@ function applyViewportSize() {
 }
 
 window.addEventListener('resize', applyViewportSize);
-
-// Un simple écouteur `resize` ne suffit pas : l'ouverture des outils de
-// développement ou un changement de mise en page modifie le conteneur sans
-// événement de fenêtre, et laisserait des bandes noires autour du canvas.
 if (typeof ResizeObserver !== 'undefined') {
   new ResizeObserver(applyViewportSize).observe(container);
 }
-
 applyViewportSize();

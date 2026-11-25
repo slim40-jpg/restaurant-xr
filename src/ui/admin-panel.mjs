@@ -49,9 +49,10 @@ export async function renderAdminPanel(container, userId) {
               <td>${new Date(r.created_at).toLocaleString('fr-FR')}</td>
               <td>${r.tables?.zone ?? '—'}</td>
               <td>${r.tables?.capacity ?? '—'} pers.</td>
-              <td>${r.profiles?.full_name ?? r.guest_name ?? '—'}</td>
-              <td>${r.status}</td>
-            </tr>
+              <td>${r.profiles?.full_name ?? r.guest_name ?? '—'}</td> 
+<td class="status-${r.status === 'confirmed' ? 'reserved' : r.status === 'occupied' ? 'occupied' : 'free'}">
+  ${r.status}
+</td>            </tr>
           `).join('')}
         </tbody>
       </table>

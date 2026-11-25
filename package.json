@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Application WebXR immersive de réservation de restaurant (projet SUP'COM)",
   "scripts": {
-    "dev": "python -m http.server 8000",
+    "dev": "node server.mjs",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.mjs\" \"*.html\"",
     "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.mjs\" \"*.html\"",

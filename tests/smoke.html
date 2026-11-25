@@ -1,354 +1,84 @@
-<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test fonctionnel — Restaurant XR</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 24px;
-        background: #12121f;
-        color: #e8e8f0;
-        font:
-          14px/1.6 ui-monospace,
-          SFMono-Regular,
-          Menlo,
-          Consolas,
-          monospace;
-      }
-      h1 {
-        font-size: 16px;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-      pre {
-        padding: 16px;
-        border: 1px solid #2a2a3d;
-        border-radius: 6px;
-        background: #1a1a2e;
-        white-space: pre-wrap;
-      }
-      p {
-        color: #9a9ab0;
-      }
-    </style>
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js",
-          "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js",
-          "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.tsl.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
+<!-- tests/mock-supabase.mjs -->
+<script type="module">
+  import { PROFILES, TABLES, RESERVATIONS } from './mock-data.mjs';
+
+  // Deep-ish clone so tests can mutate without polluting the fixture
+  const db = {
+    profiles: structuredClone(PROFILES),
+    tables: structuredClone(TABLES),
+    reservations: structuredClone(RESERVATIONS),
+  };
+
+  const listeners = [];
+  function emitChange(payload) {
+    listeners.forEach((l) => l(payload));
+  }
+
+  function makeQuery(tableName) {
+    const filters = [];
+    let insertRow = null;
+    let orderBy = null;
+
+    const query = {
+      select() { return query; },
+      eq(col, val) { filters.push([col, val]); return query; },
+      order(col, { ascending = true } = {}) { orderBy = [col, ascending]; return query; },
+      maybeSingle() {
+        const rows = apply();
+        return Promise.resolve({ data: rows[0] ?? null, error: null });
+      },
+      single() {
+        const rows = apply();
+        return Promise.resolve({ data: rows[0] ?? null, error: null });
+      },
+      insert(row) {
+        insertRow = row;
+        return query;
+      },
+      then(resolve) {
+        if (insertRow) {
+          const created = { id: db[tableName].length + 1, created_at: new Date().toISOString(), status: 'confirmed', ...insertRow };
+          db[tableName].push(created);
+          emitChange({ eventType: 'INSERT', new: created, table: tableName });
+          return Promise.resolve({ data: created, error: null }).then(resolve);
         }
+        return Promise.resolve({ data: apply(), error: null }).then(resolve);
+      },
+    };
+
+    function apply() {
+      let rows = db[tableName].slice();
+      for (const [col, val] of filters) rows = rows.filter((r) => r[col] === val);
+      if (orderBy) {
+        const [col, asc] = orderBy;
+        rows.sort((a, b) => (a[col] > b[col] ? 1 : a[col] < b[col] ? -1 : 0) * (asc ? 1 : -1));
       }
-    </script>
-  </head>
-  <body>
-    <h1>Test fonctionnel — Restaurant XR</h1>
-    <p>
-      Vérifie la construction du décor, l'état initial des tables et la logique de sélection (raycasting,
-      transition d'état, panneau). Ouvrir via un serveur HTTP, puis lire le résultat.
-    </p>
-    <pre id="out">Exécution…</pre>
+      return rows;
+    }
 
-    <script type="module">
-      import * as THREE from 'three';
-      import { buildRestaurant } from '../src/world/restaurant.mjs';
-      import { createStatusPanel } from '../src/ui/status-panel.mjs';
-      import { createWorldStatusPanel } from '../src/ui/status-panel-3d.mjs';
-      import { createStatusFanout } from '../src/ui/status-fanout.mjs';
-      import { enablePointerSelection } from '../src/interaction/pointer.mjs';
-      import { createSelectionHandler, createSelectionService } from '../src/interaction/selection.mjs';
-      import { FEATURE_LABELS_FR, ZONE_LABELS_FR } from '../src/config/constants.mjs';
-      import { describeTable, findMatchingTables, scoreTable } from '../src/interaction/recommend.mjs';
+    return query;
+  }
 
-      const results = [];
-      const check = (name, ok, extra = '') =>
-        results.push(`${ok ? 'PASS' : 'FAIL'} | ${name}${extra ? ' [' + extra + ']' : ''}`);
-
-      try {
-        const { restaurant, tablesGroup } = buildRestaurant();
-        restaurant.updateMatrixWorld(true);
-
-        check('20 tables construites', tablesGroup.children.length === 20, `${tablesGroup.children.length}`);
-        check(
-          'userData.isTable sur chaque table',
-          tablesGroup.children.every((t) => t.userData.isTable === true)
-        );
-        check(
-          'userData.marker référence un Mesh',
-          tablesGroup.children.every((t) => t.userData.marker && t.userData.marker.isMesh)
-        );
-        check(
-          'identifiants stables T01..T20',
-          new Set(tablesGroup.children.map((t) => t.userData.id)).size === 20 &&
-            tablesGroup.children.every((t) => /^T\d{2}$/.test(t.userData.id)),
-          tablesGroup.children.map((t) => t.userData.id).join(',')
-        );
-        check(
-          'chaque table porte zone, capacité, caractéristiques et niveau',
-          tablesGroup.children.every(
-            (t) =>
-              typeof t.userData.zone === 'string' &&
-              [2, 4, 6].includes(t.userData.capacity) &&
-              Array.isArray(t.userData.features) &&
-              ['ground', 'mezzanine', 'terrace'].includes(t.userData.level)
-          )
-        );
-        check(
-          'restaurant contient le décor et les tables',
-          restaurant.children.length >= 2 && restaurant.children.includes(tablesGroup),
-          `${restaurant.children.length}`
-        );
-        const statusCounts = tablesGroup.children.reduce((acc, t) => {
-          acc[t.userData.status] = (acc[t.userData.status] || 0) + 1;
-          return acc;
-        }, {});
-        check(
-          'états initiaux conformes',
-          statusCounts.available === 15 &&
-            statusCounts.occupied === 2 &&
-            statusCounts.reserved === 2 &&
-            statusCounts.unavailable === 1,
-          JSON.stringify(statusCounts)
-        );
-
-        const el = document.getElementById('out');
-        const panelTarget = document.createElement('div');
-        const panel = createStatusPanel(panelTarget);
-
-        let lastSelected = null;
-        const service = createSelectionService({
-          tablesGroup,
-          statusPanel: panel,
-          onSelect: (table) => {
-            lastSelected = table;
-          },
-        });
-        const handler = createSelectionHandler({ tablesGroup, statusPanel: panel });
-
-        // Visée descendante depuis la position des yeux vers le plateau de T01 (baie vitrée).
-        const target = tablesGroup.children.find((t) => t.userData.id === 'T01');
-        const aim = new THREE.Object3D();
-        aim.position.set(target.userData.x, 1.6, target.userData.z + 2);
-        aim.lookAt(target.userData.x, 0.78, target.userData.z);
-        aim.rotateY(Math.PI); // Object3D.lookAt oriente +Z vers la cible ; le rayon utilise -Z
-        aim.updateMatrixWorld(true);
-
-        const matrix = new THREE.Matrix4().identity().extractRotation(aim.matrixWorld);
-        const ray = new THREE.Ray();
-        ray.origin.setFromMatrixPosition(aim.matrixWorld);
-        ray.direction.set(0, 0, -1).applyMatrix4(matrix);
-
-        service.select(ray);
-        check(
-          'la sélection ne réserve pas',
-          target.userData.status === 'available',
-          target.userData.status
-        );
-        check('onSelect reçoit la table visée', lastSelected !== null && lastSelected.id === 'T01', lastSelected?.id);
-        check('le panneau affiche la table visée', panelTarget.textContent.includes('T01'), panelTarget.textContent);
-
-        const reserved = service.reserve(target);
-        check(
-          'reserve applique la transition',
-          reserved.ok === true && target.userData.status === 'reserved',
-          target.userData.status
-        );
-        check(
-          'marqueur recoloré en jaune',
-          target.userData.marker.material.color.getHex() === 0xcccc00,
-          '0x' + target.userData.marker.material.color.getHex().toString(16)
-        );
-        check('le panneau confirme la réservation', panelTarget.textContent.includes('Réservée'), panelTarget.textContent);
-
-        const refused = service.reserve(target);
-        check(
-          'reserve refuse une table déjà réservée',
-          refused.ok === false && typeof refused.reason === 'string',
-          refused.reason
-        );
-
-        // L'adaptateur manette suit la même règle : viser ne réserve pas.
-        const target2 = tablesGroup.children.find((t) => t.userData.status === 'available');
-        const aim2 = new THREE.Object3D();
-        aim2.position.set(target2.userData.x, 1.6, target2.userData.z + 2);
-        aim2.lookAt(target2.userData.x, 0.78, target2.userData.z);
-        aim2.rotateY(Math.PI);
-        aim2.updateMatrixWorld(true);
-        handler({ target: aim2 });
-        check(
-          'la manette ne réserve pas non plus',
-          target2.userData.status === 'available',
-          target2.userData.status
-        );
-
-        // Visée horizontale vers une zone sans table.
-        const away = new THREE.Object3D();
-        away.position.set(-3, 1.6, -1);
-        away.lookAt(7, 1.6, -1);
-        away.rotateY(Math.PI);
-        away.updateMatrixWorld(true);
-        handler({ target: away });
-        check(
-          'message hors cible',
-          panelTarget.textContent === 'Aucune table visée',
-          panelTarget.textContent
-        );
-
-        // --- Panneau de statut 3D (lisible dans le casque) ---
-        const world = createWorldStatusPanel();
-        check(
-          'panneau 3D = Mesh texturé',
-          world.object3D.isMesh === true && world.object3D.material.map?.isCanvasTexture === true
-        );
-
-        world.showNoTarget();
-        const canvas3d = world.object3D.material.map.image;
-        const pixels = canvas3d.getContext('2d').getImageData(0, 0, canvas3d.width, canvas3d.height).data;
-        let opaque = 0;
-        for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) opaque += 1;
-        check('panneau 3D réellement dessiné', opaque > 1000, `${opaque} px opaques`);
-
-        world.update(new THREE.PerspectiveCamera());
-        check('panneau 3D orientable vers la caméra', Number.isFinite(world.object3D.quaternion.w));
-
-        // --- Diffusion vers plusieurs panneaux ---
-        let domCalls = 0;
-        let worldCalls = 0;
-        const fanout = createStatusFanout([
-          {
-            showNoTarget: () => {
-              domCalls += 1;
-            },
-          },
-          {
-            showNoTarget: () => {
-              worldCalls += 1;
-            },
-          },
-          null,
-        ]);
-        fanout.showNoTarget();
-        check(
-          'fanout diffuse à tous les panneaux',
-          domCalls === 1 && worldCalls === 1,
-          `${domCalls}/${worldCalls}`
-        );
-
-        // --- Sélection souris : un clic sélectionne, un glisser non ---
-        const surface = document.createElement('div');
-        Object.assign(surface.style, {
-          position: 'fixed',
-          left: '0',
-          top: '0',
-          width: '400px',
-          height: '300px',
-        });
-        document.body.appendChild(surface);
-
-        let selections = 0;
-        const disposePointer = enablePointerSelection({
-          domElement: surface,
-          camera: new THREE.PerspectiveCamera(75, 4 / 3, 0.1, 100),
-          select: () => {
-            selections += 1;
-          },
-        });
-        const fire = (type, clientX, clientY) =>
-          surface.dispatchEvent(new PointerEvent(type, { clientX, clientY, bubbles: true }));
-
-        fire('pointerdown', 100, 100);
-        fire('pointerup', 100, 100);
-        check('clic souris déclenche une sélection', selections === 1, `${selections}`);
-
-        fire('pointerdown', 100, 100);
-        fire('pointerup', 260, 100);
-        check('glisser de caméra ne sélectionne pas', selections === 1, `${selections}`);
-
-        disposePointer();
-        fire('pointerdown', 120, 120);
-        fire('pointerup', 120, 120);
-        check('dispose retire les écouteurs', selections === 1, `${selections}`);
-        surface.remove();
-
-        // --- Moteur de recommandation (logique pure, tables factices) ---
-        const fakeTable = (over = {}) => ({
-          id: 'T01',
-          capacity: 4,
-          shape: 'round',
-          zone: 'center',
-          features: [],
-          status: 'available',
-          ...over,
-        });
-        const windowPrefs = { partySize: 4, zone: 'window', features: [], quiet: false, avoidWc: false };
-
-        check(
-          'scoreTable exclut une table occupée',
-          scoreTable(fakeTable({ status: 'occupied' }), windowPrefs) === -Infinity
-        );
-        check(
-          'scoreTable exclut une capacité insuffisante',
-          scoreTable(fakeTable({ capacity: 2 }), { partySize: 6 }) === -Infinity
-        );
-
-        const pool = [
-          fakeTable({ id: 'T03', zone: 'center', capacity: 4 }),
-          fakeTable({ id: 'T01', zone: 'window', capacity: 4, features: ['quiet'] }),
-          fakeTable({ id: 'T02', zone: 'window', capacity: 6 }),
-        ];
-        const orderA = findMatchingTables(pool, windowPrefs)
-          .map((m) => m.table.id)
-          .join(',');
-        const orderB = findMatchingTables(pool, windowPrefs)
-          .map((m) => m.table.id)
-          .join(',');
-        check('findMatchingTables est déterministe', orderA === orderB, orderA);
-
-        const ranked = findMatchingTables(
-          [fakeTable({ id: 'C1', zone: 'center' }), fakeTable({ id: 'W1', zone: 'window' })],
-          windowPrefs
-        );
-        check(
-          'la zone fenêtre passe avant le centre',
-          ranked[0].table.id === 'W1',
-          ranked.map((m) => m.table.id).join(',')
-        );
-
-        const frenchLabels = new Set([
-          ...Object.values(ZONE_LABELS_FR),
-          ...Object.values(FEATURE_LABELS_FR),
-          'Loin des WC',
-        ]);
-        const reasons = findMatchingTables(pool, {
-          ...windowPrefs,
-          features: ['quiet'],
-          quiet: true,
-          avoidWc: true,
-        }).flatMap((m) => m.reasons);
-        check(
-          'reasons ne contient que des libellés français',
-          reasons.length > 0 && reasons.every((reason) => frenchLabels.has(reason)),
-          reasons.join(' | ')
-        );
-
-        const described = describeTable(
-          fakeTable({ id: 'T05', zone: 'window', capacity: 4, features: ['quiet'] })
-        );
-        check(
-          'describeTable produit la chaîne attendue',
-          described === 'T05 · Près de la fenêtre · 4 places · Au calme',
-          described
-        );
-      } catch (error) {
-        results.push('FAIL | exception : ' + (error && error.message));
-      }
-
-      const failed = results.filter((r) => r.startsWith('FAIL')).length;
-      document.getElementById('out').textContent =
-        results.join('\n') + `\n\n${results.length - failed}/${results.length} assertions réussies.`;
-    </script>
-  </body>
-</html>
+  window.__mockSupabase = {
+    from: (name) => makeQuery(name),
+    auth: {
+      getUser: async () => ({ data: { user: { id: PROFILES[0].id, email: 'slim@example.com' } }, error: null }),
+      signInWithPassword: async ({ email }) => ({
+        data: { user: { id: PROFILES[0].id, email } },
+        error: null,
+      }),
+      signUp: async ({ email }) => ({
+        data: { user: { id: PROFILES[0].id, email } },
+        error: null,
+      }),
+      signOut: async () => ({ error: null }),
+    },
+    channel: (name) => ({
+      on: (_event, _filter, cb) => {
+        listeners.push(cb);
+        return { subscribe: () => {} };
+      },
+    }),
+    removeChannel: () => {},
+  };
+</script>

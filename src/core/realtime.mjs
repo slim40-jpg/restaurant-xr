@@ -6,22 +6,17 @@
 import { supabase } from './supabase-client.mjs';
 
 let channel = null;
-
 export function subscribeToReservations(onChange) {
   channel = supabase
     .channel('reservations-live')
     .on(
       'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'reservations',
-      },
+      { event: '*', schema: 'public', table: 'reservations' },
       (payload) => {
         onChange({
           eventType: payload.eventType,
-          tableId: payload.new?.table_id,
-          status: payload.new?.status,
+          tableId: payload.new?.table_id ?? payload.old?.table_id,
+          status: payload.new?.status,        // 'confirmed' | 'cancelled' | 'occupied'
         });
       }
     )
