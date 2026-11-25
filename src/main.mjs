@@ -28,6 +28,12 @@ import { WALK_COLLIDERS, surfaceHeightAt } from './world/walkable.mjs';
 import { setupAR } from './xr/ar.mjs';
 import { setupControllers } from './xr/controllers.mjs';
 
+// === AJOUT BACKEND : imports pour la persistance et le temps réel ===
+import { getCurrentUser } from './interaction/auth.mjs';
+import { getReservedTableIds, reserve as reserveInSupabase } from './interaction/reserve.mjs';
+import { subscribeToReservations } from './core/realtime.mjs';
+// === FIN AJOUT BACKEND ===
+
 // Le canvas est monté dans ce conteneur stable : lors du basculement de backend
 // pour la XR, seul le canvas est remplacé et les écouteurs survivent.
 const container = document.getElementById('app') ?? document.body;
@@ -68,11 +74,15 @@ const { controller } = setupControllers(xrRenderer.getRenderer(), scene);
 const tableCard = createTableCard({
   container: document.getElementById('table-card') ?? document.body,
   onReserve: (table) => {
-    const result = selection.reserve(table);
-    if (result.ok) {
-      preferences.refresh();
-      tableCard.open(table);
-    }
+    // === AJOUT BACKEND : on écrit d'abord en base, puis on rafraîchit l'UI ===
+    void (async () => {
+      const result = await reserveInSupabase(table.id);
+      if (result.success) {
+        preferences.refresh();
+        tableCard.open(table);
+      }
+    })();
+    // === FIN AJOUT BACKEND ===
   },
   onClose: () => walkMode.resume(),
 });
@@ -152,6 +162,47 @@ void xrRenderer.init().then((status) => {
 
 // Enregistrement du service worker (ignoré hors contexte sécurisé).
 registerServiceWorker();
+
+// === AJOUT BACKEND : chargement initial de l'état + abonnement Realtime ===
+// On attend que l'utilisateur soit connu, puis on lit les tables déjà réservées.
+// Aucune modification n'est faite aux modules existants : on réutilise
+// `preferences.refresh()` pour que l'UI relise `getTables()` (qui, lui, n'a pas changé).
+void (async () => {
+  const user = await getCurrentUser();
+  if (!user) {
+    // Pas connecté : on laisse l'application tourner en lecture seule.
+    return;
+  }
+
+  const reservedIds = await getReservedTableIds();
+  // On stocke les IDs réservés sur les userData des tables pour que la sélection
+  // et le panneau de préférences les voient comme indisponibles.
+  for (const child of tablesGroup.children) {
+    if (child.userData && reservedIds.has(child.userData.id)) {
+      child.userData.status = 'reserved';
+    }
+  }
+  preferences.refresh();
+
+  // Écoute des changements en temps réel (insertions et mises à jour).
+  subscribeToReservations(({ eventType, tableId, status }) => {
+    const child = tablesGroup.children.find((c) => c.userData?.id === tableId);
+    if (!child) return;
+
+    if (eventType === 'INSERT' && status === 'confirmed') {
+      child.userData.status = 'reserved';
+    } else if (eventType === 'UPDATE' && status === 'cancelled') {
+      child.userData.status = 'available';
+    } else if (eventType === 'DELETE') {
+      child.userData.status = 'available';
+    }
+
+    // Les mêmes points d'entrée que l'application existante.
+    preferences.refresh();
+    highlighter.highlight([]);
+  });
+})();
+// === FIN AJOUT BACKEND ===
 
 // ========== 4. BOUCLE DE RENDU ET REDIMENSIONNEMENT ==========
 let lastTime = 0;
