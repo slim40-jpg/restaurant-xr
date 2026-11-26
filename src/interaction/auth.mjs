@@ -22,3 +22,8 @@ export async function getUserRole(userId) {
   const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
   return data?.role ?? 'client';
 }
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) console.error('Logout error:', error);
+  return { error };
+}
