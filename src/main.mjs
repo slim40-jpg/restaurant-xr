@@ -26,6 +26,7 @@ import { buildRestaurant } from './world/restaurant.mjs';
 import { WALK_COLLIDERS, surfaceHeightAt } from './world/walkable.mjs';
 import { setupAR } from './xr/ar.mjs';
 import { setupControllers } from './xr/controllers.mjs';
+import { createLogoutButton } from './ui/logout.mjs';
 
 // === AJOUT BACKEND : Imports ===
 import { getCurrentUser } from './interaction/auth.mjs';
@@ -167,15 +168,15 @@ async function initBackend() {
   const authRoot = document.getElementById('auth-root');
   
   if (!user) {
-    // Affiche le panneau de connexion
     authRoot.style.display = 'flex';
     renderAuthPanel(authRoot, async () => {
       authRoot.style.display = 'none';
+      createLogoutButton(document.body);
       await loadStatesAndSubscribe();
     });
   } else {
-    // Déjà connecté
     authRoot.style.display = 'none';
+    createLogoutButton(document.body);
     await loadStatesAndSubscribe();
   }
 }
