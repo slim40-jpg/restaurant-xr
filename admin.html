@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin — Restaurant XR</title>
+  </head>
+  <body>
+    <div id="admin-root"></div>
+    <script type="module">
+      import { getCurrentUser } from './src/interaction/auth.mjs';
+      import { renderAdminPanel } from './src/ui/admin-panel.mjs';
+
+      const user = await getCurrentUser();
+      if (!user) {
+        document.getElementById('admin-root').innerHTML = "<p>Connectez-vous d'abord.</p>";
+      } else {
+        await renderAdminPanel(document.getElementById('admin-root'), user.id);
+      }
+    </script>
+  </body>
+</html>
