@@ -183,7 +183,6 @@ async function initBackend() {
 
 void initBackend();
 
-// ========== 5. BOUCLE DE RENDU ==========
 let lastTime = 0;
 xrRenderer.setAnimationLoop((time = 0, frame = null) => {
   const renderer = xrRenderer.getRenderer();
